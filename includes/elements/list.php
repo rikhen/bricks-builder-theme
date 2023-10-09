@@ -134,11 +134,11 @@ class Element_List extends Element {
 		];
 
 		$this->controls['itemAlignItems'] = [
-			'tab'   => 'content',
-			'group' => 'item',
-			'label' => esc_html__( 'Align items', 'bricks' ),
-			'type'  => 'align-items',
-			'css'   => [
+			'tab'     => 'content',
+			'group'   => 'item',
+			'label'   => esc_html__( 'Align items', 'bricks' ),
+			'type'    => 'align-items',
+			'css'     => [
 				[
 					'property' => 'align-items',
 					'selector' => '.content',
@@ -680,7 +680,10 @@ class Element_List extends Element {
 		$output = "<ul {$this->render_attributes( '_root' )}>";
 
 		foreach ( $settings['items'] as $index => $item ) {
-			$highlight = isset( $item['highlight'] ) && ! empty( $item['highlightLabel'] ) ? $item['highlightLabel'] : false;
+			$title       = ! empty( $item['title'] ) ? $this->render_dynamic_data( $item['title'] ) : false;
+			$meta        = ! empty( $item['meta'] ) ? $this->render_dynamic_data( $item['meta'] ) : false;
+			$description = ! empty( $item['description'] ) ? $this->render_dynamic_data( $item['description'] ) : false;
+			$highlight   = isset( $item['highlight'] ) && ! empty( $item['highlightLabel'] ) ? $this->render_dynamic_data( $item['highlightLabel'] ) : false;
 
 			if ( $highlight ) {
 				$this->set_attribute( "item-$index", 'data-highlight', $highlight );
@@ -697,7 +700,7 @@ class Element_List extends Element {
 				$output .= '<span class="icon">' . $icon . '</span>';
 			}
 
-			if ( ! empty( $item['title'] ) ) {
+			if ( ! empty( $title ) ) {
 				$title_tag = ! empty( $settings['titleTag'] ) ? esc_attr( $settings['titleTag'] ) : 'span';
 
 				$this->set_attribute( "title-$index", $title_tag );
@@ -708,7 +711,7 @@ class Element_List extends Element {
 					$output .= "<a {$this->render_attributes( "a-$index" )}>";
 				}
 
-				$output .= "<{$this->render_attributes( "title-$index" )}>{$item['title']}</{$title_tag}>";
+				$output .= "<{$this->render_attributes( "title-$index" )}>{$title}</{$title_tag}>";
 
 				if ( ! empty( $item['link'] ) ) {
 					$output .= '</a>';
@@ -723,18 +726,18 @@ class Element_List extends Element {
 				$output .= '<span class="separator"></span>';
 			}
 
-			if ( ! empty( $item['meta'] ) ) {
+			if ( ! empty( $meta ) ) {
 				$this->set_attribute( "meta-$index", 'class', [ 'meta' ] );
 
-				$output .= "<span {$this->render_attributes( "meta-$index" )}>{$item['meta']}</span>";
+				$output .= "<span {$this->render_attributes( "meta-$index" )}>{$meta}</span>";
 			}
 
 			$output .= '</div>';
 
-			if ( ! empty( $item['description'] ) ) {
+			if ( ! empty( $description ) ) {
 				$this->set_attribute( "description-$index", 'class', [ 'description' ] );
 
-				$output .= "<div {$this->render_attributes( "description-$index" )}>{$item['description']}</div>";
+				$output .= "<div {$this->render_attributes( "description-$index" )}>{$description}</div>";
 			}
 
 			$output .= '</li>';

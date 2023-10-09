@@ -70,14 +70,14 @@ class Breadcrumbs extends Element {
 			'type'        => 'text',
 			'inline'      => true,
 			'placeholder' => '/',
-			'required'    => ['separatorType', '=', ['text', '']],
+			'required'    => [ 'separatorType', '=', [ 'text', '' ] ],
 		];
 
 		$this->controls['separatorIcon'] = [
 			'group'    => 'separator',
 			'label'    => esc_html__( 'Icon', 'bricks' ),
 			'type'     => 'icon',
-			'required' => ['separatorType', '=', 'icon'],
+			'required' => [ 'separatorType', '=', 'icon' ],
 		];
 
 		$this->controls['separatorColor'] = [
@@ -413,7 +413,7 @@ class Breadcrumbs extends Element {
 	/**
 	 * Populate breadcrumbs parent links
 	 *
-	 * @param int $parent
+	 * @param int    $parent
 	 * @param string $type
 	 * @return array
 	 *

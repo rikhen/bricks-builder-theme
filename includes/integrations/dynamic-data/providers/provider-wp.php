@@ -121,6 +121,11 @@ class Provider_Wp extends Base {
 				'group' => 'author',
 			],
 
+			'author_meta'         => [
+				'label' => esc_html__( 'Author meta - add key after :', 'bricks' ),
+				'group' => 'author',
+			],
+
 			// Site
 			'site_title'          => [
 				'label' => esc_html__( 'Site title', 'bricks' ),
@@ -134,6 +139,12 @@ class Provider_Wp extends Base {
 
 			'site_url'            => [
 				'label' => esc_html__( 'Site URL', 'bricks' ),
+				'group' => 'site',
+			],
+
+			// Woo Phase 3
+			'site_logout'         => [
+				'label' => esc_html__( 'Logout URL', 'bricks' ),
 				'group' => 'site',
 			],
 
@@ -200,7 +211,12 @@ class Provider_Wp extends Base {
 			'current_date'        => [
 				'label' => esc_html__( 'Current date', 'bricks' ),
 				'group' => 'date',
-			]
+			],
+
+			'query_results_count' => [
+				'label' => esc_html__( 'Query results count', 'bricks' ),
+				'group' => 'query',
+			],
 		];
 
 		// User Profile fields
@@ -544,10 +560,10 @@ class Provider_Wp extends Base {
 					// Cart item featured image inside woo cart loop (@since 1.8.5)
 					$loop_object_type = \Bricks\Query::is_looping() ? \Bricks\Query::get_query_object_type() : false;
 
-					if ( $loop_object_type === 'wooCart'  ) {
+					if ( $loop_object_type === 'wooCart' ) {
 						// Get the loop cart object
-						$loop_object  = \Bricks\Query::get_loop_object();
-						$product      = isset( $loop_object['data'] ) && is_a( $loop_object['data'], 'WC_Product' ) ? $loop_object['data'] : wc_get_product( $post_id );
+						$loop_object = \Bricks\Query::get_loop_object();
+						$product     = isset( $loop_object['data'] ) && is_a( $loop_object['data'], 'WC_Product' ) ? $loop_object['data'] : wc_get_product( $post_id );
 
 						/**
 						 * Similar like $product->get_image() method in WC_Product class
@@ -583,6 +599,7 @@ class Provider_Wp extends Base {
 			case 'author_email':
 			case 'author_website':
 			case 'author_avatar':
+			case 'author_meta':
 				/**
 				 * Get user_id
 				 *
@@ -590,11 +607,11 @@ class Provider_Wp extends Base {
 				 *
 				 * @since 1.7.1
 				 */
-
 				$user_id = is_singular() || ( \Bricks\Query::is_looping() && \Bricks\Query::get_loop_object_type() === 'post' ) ? $post->post_author : $post_id;
 
 				/**
 				 * $post_id might be empty in author archive page (when post ID 1 is removed, author ID 1 will be empty $post_id)
+				 *
 				 * @see $post_id render_content() inside providers.php
 				 *
 				 * Get the author of the queried object if we are on an author archive page.
@@ -605,14 +622,40 @@ class Provider_Wp extends Base {
 					$user_id = get_queried_object_id();
 				}
 
-				// If not looping and is previewing a template, get the template preview author if it's set (@since 1.8.2)
+				/**
+				 * Frontend: Preview template author & not looping: Get template preview author
+				 *
+				 * @since 1.8.2
+				 */
 				if ( \Bricks\Helpers::is_bricks_template( $post_id ) && ! \Bricks\Query::is_looping() ) {
 					$template_preview_author = \Bricks\Helpers::get_template_setting( 'templatePreviewAuthor', $post_id );
-					$user_id = $template_preview_author ? $template_preview_author : $user_id;
+					$user_id                 = $template_preview_author ? $template_preview_author : $user_id;
 				}
 
-				$user    = get_user_by( 'id', $user_id );
-				$value   = $user ? $this->get_user_tag_value( $tag, $user, $filters, $context ) : '';
+				$user = get_user_by( 'id', $user_id );
+
+				/**
+				 * Builder OR AJAX call (infinite scroll)
+				 *
+				 * @since 1.9.1
+				 */
+				if ( ! $user && $user_id == $post_id ) {
+					// Preview template & not looping: Get template preview author
+					$template_preview_author = \Bricks\Helpers::get_template_setting( 'templatePreviewAuthor', $post_id );
+					$user_id                 = $template_preview_author ? $template_preview_author : $user_id;
+
+					if ( $template_preview_author ) {
+						$user = get_user_by( 'id', $template_preview_author );
+					}
+
+					// Get user as is_singular() check above is not working ($wp_query is not populated)
+					else {
+						$user = $post ? get_user_by( 'id', $post->post_author ) : null;
+					}
+				}
+
+				$value = $user ? $this->get_user_tag_value( $tag, $user, $filters, $context ) : '';
+
 				break;
 
 			// User Profile fields
@@ -644,6 +687,18 @@ class Provider_Wp extends Base {
 
 			case 'site_url':
 				$value = get_bloginfo( 'url', 'display' );
+				break;
+
+			// @since 1.9
+			case 'site_logout':
+				$redirect_to = '';
+
+				// Redirect to a specific page after logout: {site_logout:5}
+				if ( ! empty( $filters['num_words'] ) ) {
+					$redirect_to = get_the_permalink( $filters['num_words'] );
+				}
+
+				$value = wp_logout_url( $redirect_to );
 				break;
 
 			case 'url_parameter':
@@ -719,7 +774,7 @@ class Provider_Wp extends Base {
 				if ( isset( $filters['array_value'] ) && is_array( $value ) ) {
 					// Force context to text
 					$context = 'text';
-					$value = $this->return_array_value( $value, $filters );
+					$value   = $this->return_array_value( $value, $filters );
 				}
 				break;
 
@@ -728,6 +783,43 @@ class Provider_Wp extends Base {
 				if ( ! bricks_is_builder() && ! bricks_is_builder_call() ) {
 					$filters['skip_sanitize'] = true;
 					$value                    = $this->get_do_action_callback_value( $filters, $context, $post );
+				}
+				break;
+
+			case 'query_results_count':
+				// Get the results count from query_history, not supporting nested queries (@since 1.9.1)
+				$query_object = false;
+				$element_id   = ! empty( $filters['meta_key'] ) ? $filters['meta_key'] : false;
+
+				// Element ID provided: Get query object from query history
+				if ( $element_id ) {
+					if ( bricks_is_builder() ) {
+						// $value = '[' . esc_html__( 'View on frontend', 'bricks' ) . ']';
+						break;
+					} else {
+						$query_object = \Bricks\Query::get_query_by_element_id( $element_id, true );
+					}
+				} else {
+					// No element ID provided, get the current query object
+					$query_object = \Bricks\Query::get_query_object( \Bricks\Query::is_any_looping() );
+				}
+
+				// No query object found. Init query (@since 1.9.1.1)
+				if ( ! $query_object ) {
+					$element_data = \Bricks\Helpers::get_element_data( $post_id, $element_id );
+
+					if ( isset( $element_data['element']['settings'] ) ) {
+						$query_object = new \Bricks\Query( $element_data['element'] );
+						if ( $query_object ) {
+							$query_object->destroy();
+						}
+					}
+				}
+
+				if ( is_a( $query_object, 'Bricks\Query' ) ) {
+					$value = $query_object->count;
+				} else {
+					$value = 0;
 				}
 				break;
 		}
@@ -803,14 +895,17 @@ class Provider_Wp extends Base {
 
 			// Parse arguments, e.g.: 'arg1,still arg1', 'arg2', arg3 (@since 1.5.3)
 			if ( ! empty( $parts[1] ) ) {
-
 				$in_quote = false;
 				$chunk    = '';
 
 				foreach ( str_split( $parts[1] ) as $char ) {
+					// Skip spaces outside of a single quote (@since 1.9.1)
+					if ( ! $in_quote && $char == ' ' ) {
+						continue;
+					}
+
 					// Bump into a single quote
 					if ( $char == '\'' ) {
-
 						// Already inside of a single quote: this is a closing quote
 						if ( $in_quote ) {
 							// Add chunk as argument

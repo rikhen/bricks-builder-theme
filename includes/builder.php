@@ -100,7 +100,22 @@ class Builder {
 		$direction = Database::get_setting( 'builderLanguageDirection', false );
 
 		if ( ! $direction ) {
-			return;
+			$builder_locale = Database::get_setting( 'builderLocale', false );
+
+			// If builderLocale is set to "site-default", get the site's default locale
+			if ( $builder_locale == 'site-default' ) {
+				$builder_locale = get_locale();
+			}
+
+			// Determine if the locale is a RTL or LTR language
+			// NOTE: Best not to hardcode RTL languages if possible!
+			$rtl_languages = [ 'ar', 'he', 'fa', 'ur', 'yi', 'ps', 'dv', 'ckb', 'sd', 'ug' ];
+
+			// Apply filter to allow RTL languages to be added
+			$rtl_languages = apply_filters( 'bricks/rtl_languages', $rtl_languages );
+
+			$language_code = substr( $builder_locale, 0, 2 );
+			$direction     = in_array( $language_code, $rtl_languages ) ? 'rtl' : 'ltr';
 		}
 
 		global $wp_locale, $wp_styles;
@@ -255,6 +270,7 @@ class Builder {
 			'bricksData',
 			[
 				'loadData'                      => self::builder_data( $post_id ), // Initial data to bootstrap builder iframe
+				'dynamicWrapper'                => apply_filters( 'bricks/builder/dynamic_wrapper', [] ),
 
 				// Bricks settings
 				'customBreakpoints'             => Database::get_setting( 'customBreakpoints', false ),
@@ -384,15 +400,6 @@ class Builder {
 					'types'                    => $control_options['templateTypes'],
 				],
 
-				'userCan'                       => [
-					'publishPosts' => current_user_can( 'publish_posts' ),
-					'publishPages' => current_user_can( 'publish_pages' ),
-
-					'fullAccess'   => Capabilities::current_user_has_full_access(),
-					'uploadSvg'    => Capabilities::current_user_can_upload_svg(),
-					'executeCode'  => Capabilities::current_user_can_execute_code(),
-				],
-
 				'mailchimpLists'                => Integrations\Form\Actions\Mailchimp::get_list_options(),
 				'wooCommerceActive'             => Woocommerce::$is_active,
 				'googleFontsDisabled'           => Helpers::google_fonts_disabled(),
@@ -429,13 +436,13 @@ class Builder {
 		}
 
 		foreach ( $static_areas as $static_area ) {
-			$preview_id         = ! empty( Database::$active_templates[$static_area] ) ? Database::$active_templates[$static_area] : 0;
+			$preview_id         = ! empty( Database::$active_templates[ $static_area ] ) ? Database::$active_templates[ $static_area ] : 0;
 			$static_area_handle = "bricks-static-area-{$static_area}-{$preview_id}";
 
 			if ( $preview_id ) {
 				// Generate & use only inline styles for this static area
 				Assets::generate_inline_css( $preview_id );
-				$styles = ! empty( Assets::$inline_css[$static_area] ) ? Assets::$inline_css[$static_area] : '';
+				$styles = ! empty( Assets::$inline_css[ $static_area ] ) ? Assets::$inline_css[ $static_area ] : '';
 
 				// Dynamic background image inside query loop (@see assets.php (l1365))
 				if ( Database::get_setting( 'cssLoading' ) === 'file' ) {
@@ -793,7 +800,12 @@ class Builder {
 			'addClass'                         => esc_html__( 'Add class', 'bricks' ),
 			'addImages'                        => esc_html__( 'Add images', 'bricks' ),
 			'addItem'                          => esc_html__( 'Add Item', 'bricks' ),
-			'advanced'                         => esc_html__( 'Advanced', 'bricks' ),
+			'ajaxLoader'                       => esc_html__( 'AJAX loader', 'bricks' ),
+			'ajaxLoaderDesc'                   => esc_html__( 'Shows when using infinite scroll, load more interaction, AJAX pagination.', 'bricks' ),
+			'ajaxLoaderSelector'               => esc_html__( 'CSS selector', 'bricks' ),
+			'ajaxLoaderSelectorDesc'           => esc_html__( 'CSS selector of the element to insert the AJAX loader into.', 'bricks' ),
+			'ajaxLoaderAnimation'              => esc_html__( 'Animation', 'bricks' ),
+
 			'align'                            => esc_html__( 'Align', 'bricks' ),
 			'alignItems'                       => esc_html__( 'Align items', 'bricks' ),
 			'all'                              => esc_html__( 'All', 'bricks' ),
@@ -820,6 +832,7 @@ class Builder {
 			'backgroundRepeat'                 => esc_html__( 'Background repeat', 'bricks' ),
 			'backgroundSize'                   => esc_html__( 'Background size', 'bricks' ),
 			'backgroundAttachment'             => esc_html__( 'Background attachment', 'bricks' ),
+			'backgroundBlendMode'              => esc_html__( 'Background blend mode', 'bricks' ),
 			'backgroundVideo'                  => esc_html__( 'Background video', 'bricks' ),
 			'backgroundVideoAspectRatio'       => esc_html__( 'Aspect ratio', 'bricks' ),
 			'backgroundVideoStartAt'           => esc_html__( 'Select smallest breakpoint that this video should play at. Preview on frontend.', 'bricks' ),
@@ -857,7 +870,10 @@ class Builder {
 				'<a href="mailto:help@bricksbuilder.io" target="_blank">help@bricksbuilder.io</a>',
 				'<a href="https://bricksbuilder.io/roadmap/" target="_blank" rel="noopener">' . esc_html__( 'official roadmap', 'bricks' ) . '</a>'
 			),
-			'builderHelpUploadLimitExceeded'   => sprintf( esc_html__( 'Your attached files exceed your server max. upload size of %s.', 'bricks' ), size_format( wp_max_upload_size() ) ),
+			'builderHelpUploadLimitExceeded'   => sprintf(
+				esc_html__( 'Your attached files exceed your server max. upload size of %s.', 'bricks' ),
+				size_format( wp_max_upload_size() )
+			),
 			'builderHelpGmailLimitExceeded'    => esc_html__( 'Your attached files exceed the max. upload limit of 25 MB.', 'bricks' ),
 			'bulletedlist'                     => esc_html__( 'Bulleted list', 'bricks' ),
 			'by'                               => esc_html__( 'by', 'bricks' ),
@@ -910,6 +926,7 @@ class Builder {
 			'contenteditablePlaceholder'       => esc_html__( 'Here goes my text ...', 'bricks' ),
 			'convert'                          => esc_html__( 'Convert', 'bricks' ),
 			'cover'                            => esc_html__( 'Cover', 'bricks' ),
+			'currentPostAuthor'                => esc_html__( 'Current post author', 'bricks' ),
 			'currentPostTerm'                  => esc_html__( 'Current post term', 'bricks' ),
 			'create'                           => esc_html__( 'Create', 'bricks' ),
 			'createTemplate'                   => esc_html__( 'Create template', 'bricks' ),
@@ -921,7 +938,10 @@ class Builder {
 			'cssClassesTooltip'                => esc_html__( 'Separated by space. No leading dot "."', 'bricks' ),
 			'cssIdTooltip'                     => esc_html__( 'No leading pound sign "#"', 'bricks' ),
 			'cssFilter'                        => esc_html__( 'CSS filter', 'bricks' ),
-			'cssFilterDescription'             => sprintf( '<a target="_blank" href="https://developer.mozilla.org/en/docs/Web/CSS/filter?v=example">%s</a>', esc_html__( 'Enter CSS filters + value (learn more)', 'bricks' ) ),
+			'cssFilterDescription'             => sprintf(
+				'<a target="_blank" href="https://developer.mozilla.org/en/docs/Web/CSS/filter?v=example">%s</a>',
+				esc_html__( 'Enter CSS filters + value (learn more)', 'bricks' )
+			),
 			'cssSelector'                      => esc_html__( 'CSS selector', 'bricks' ),
 			'currentLayout'                    => esc_html__( 'Current layout', 'bricks' ),
 			'currentVersionBy'                 => esc_html__( 'Current version by', 'bricks' ),
@@ -933,8 +953,14 @@ class Builder {
 
 			'dashboard'                        => esc_html__( 'Dashboard', 'bricks' ),
 			'default'                          => esc_html__( 'Default', 'bricks' ),
-			'defaultTemplatesEnabled'          => sprintf( esc_html__( '%s. Template conditions precede default templates.', 'bricks' ), '<a href="' . admin_url( 'admin.php?page=bricks-settings#tab-templates' ) . '" target="_blank">' . esc_html__( 'Default templates are enabled', 'bricks' ) . '</a>' ),
-			'defaultTemplatesDisabled'         => sprintf( esc_html__( '%s. Set template conditions or enable default templates.', 'bricks' ), '<a href="' . admin_url( 'admin.php?page=bricks-settings#tab-templates' ) . '" target="_blank">' . esc_html__( 'Default templates are disabled', 'bricks' ) . '</a>' ),
+			'defaultTemplatesEnabled'          => sprintf(
+				esc_html__( '%s. Template conditions precede default templates.', 'bricks' ),
+				'<a href="' . admin_url( 'admin.php?page=bricks-settings#tab-templates' ) . '" target="_blank">' . esc_html__( 'Default templates are enabled', 'bricks' ) . '</a>'
+			),
+			'defaultTemplatesDisabled'         => sprintf(
+				esc_html__( '%s. Set template conditions or enable default templates.', 'bricks' ),
+				'<a href="' . admin_url( 'admin.php?page=bricks-settings#tab-templates' ) . '" target="_blank">' . esc_html__( 'Default templates are disabled', 'bricks' ) . '</a>'
+			),
 			'dashed'                           => esc_html__( 'dashed', 'bricks' ),
 			'date'                             => esc_html__( 'Date', 'bricks' ),
 			'delete'                           => esc_html__( 'Delete', 'bricks' ),
@@ -1125,7 +1151,7 @@ class Builder {
 			'interactions'                     => esc_html__( 'Interactions', 'bricks' ),
 			'internal'                         => esc_html__( 'Internal post/page', 'bricks' ),
 			'invert'                           => esc_html__( 'Invert', 'bricks' ),
-			'isArchiveMainQuery' 					  	 => esc_html__( 'Is main query', 'bricks' ) . ' (' . esc_html__( 'Archive', 'bricks' ) . ')',
+			'isArchiveMainQuery'               => esc_html__( 'Is main query', 'bricks' ) . ' (' . esc_html__( 'Archive', 'bricks' ) . ', ' . esc_html__( 'Search', 'bricks' ) . ')',
 			'isArchiveMainQueryDescription'    => esc_html__( 'Enable if your archive pagination is not working.', 'bricks' ),
 			'italic'                           => esc_html__( 'Italic', 'bricks' ),
 			'item'                             => esc_html__( 'Item', 'bricks' ),
@@ -1174,7 +1200,10 @@ class Builder {
 			'mainQuery'                        => esc_html__( 'Main query', 'bricks' ),
 			'margin'                           => esc_html__( 'Margin', 'bricks' ),
 			'masonry'                          => esc_html__( 'Masonry', 'bricks' ),
-			'maxUploadSizeInfo'                => sprintf( esc_html__( 'Max upload size: %s', 'bricks' ), size_format( wp_max_upload_size() ) ),
+			'maxUploadSizeInfo'                => sprintf(
+				esc_html__( 'Max upload size: %s', 'bricks' ),
+				size_format( wp_max_upload_size() )
+			),
 			'media'                            => esc_html__( 'Media', 'bricks' ),
 			'metaKey'                          => esc_html__( 'Meta key', 'bricks' ),
 			'metaKeyOrder'                     => esc_html__( 'Order meta key', 'bricks' ),
@@ -1228,6 +1257,7 @@ class Builder {
 			'noResults'                        => esc_html__( 'Nothing found. Please try again with a different keyword!', 'bricks' ),
 			'noResultsQuery'                   => esc_html__( 'No results', 'bricks' ),
 			'noRevisions'                      => esc_html__( 'No revisions.', 'bricks' ),
+			'normal'                           => esc_html__( 'Normal', 'bricks' ),
 			'noDynamicDataFound'               => esc_html__( 'No dynamic data found.', 'bricks' ),
 			'noTemplatesFound'                 => esc_html__( 'No templates found.', 'bricks' ),
 			'notFound'                         => esc_html__( 'Not found', 'bricks' ),
@@ -1298,7 +1328,10 @@ class Builder {
 			'postsOffsetDescription'           => esc_html__( 'Ignored when posts per page set to "-1".', 'bricks' ),
 			'postsPerPage'                     => esc_html__( 'Posts per page', 'bricks' ),
 			'postType'                         => esc_html__( 'Post type', 'bricks' ),
-			'poweredByUnsplash'                => sprintf( esc_html__( 'Powered by %s', 'bricks' ), '<a href="https://unsplash.com/?ref=bricksbuilderio" target="_blank">Unsplash</a>' ),
+			'poweredByUnsplash'                => sprintf(
+				esc_html__( 'Powered by %s', 'bricks' ),
+				'<a href="https://unsplash.com/?ref=bricksbuilderio" target="_blank">Unsplash</a>'
+			),
 			'prev'                             => esc_html__( 'Prev', 'bricks' ),
 			'preview'                          => esc_html__( 'Preview', 'bricks' ),
 			'previewMode'                      => esc_html__( 'Preview mode', 'bricks' ),
@@ -1314,6 +1347,14 @@ class Builder {
 			'published'                        => esc_html__( 'Published', 'bricks' ),
 			'publishedDate'                    => esc_html__( 'Published date', 'bricks' ),
 
+			'queryEditor'                      => esc_html__( 'Query editor', 'bricks' ) . ' (PHP)',
+			'queryEditorInfo'                  => sprintf(
+				esc_html__( 'Return query parameters in PHP array. Learn more about the query parameters for %1$s, %2$s, %3$s', 'bricks' ),
+				sprintf( '<a href="https://developer.wordpress.org/reference/classes/wp_query/#post-type-parameters" target="_blank">%s</a>', esc_html__( 'Posts', 'bricks' ) ),
+				sprintf( '<a href="https://developer.wordpress.org/reference/classes/wp_term_query/#source" target="_blank">%s</a>', esc_html__( 'Terms', 'bricks' ) ),
+				sprintf( '<a href="https://developer.wordpress.org/reference/classes/wp_user_query/#parameters" target="_blank">%s</a>', esc_html__( 'Users', 'bricks' ) )
+			),
+			'queryEditorNoCodeExecutionInfo'   => esc_html__( 'Query editor in use. But not accessible due to lack of code execution rights.', 'bricks' ),
 			'queryLoop'                        => esc_html__( 'Query loop', 'bricks' ),
 			'quickNav'                         => esc_html__( 'Quick nav', 'bricks' ),
 
@@ -1402,7 +1443,10 @@ class Builder {
 			'showAuthor'                       => esc_html__( 'Show author', 'bricks' ),
 			'showDate'                         => esc_html__( 'Show date', 'bricks' ),
 			'showEmpty'                        => esc_html__( 'Show empty', 'bricks' ),
-			'showExcerpt'                      => sprintf( '<a href="https://codex.wordpress.org/Excerpt" target="_blank">%s</a>', esc_html__( 'Show excerpt', 'bricks' ) ),
+			'showExcerpt'                      => sprintf(
+				'<a href="https://codex.wordpress.org/Excerpt" target="_blank">%s</a>',
+				esc_html__( 'Show excerpt', 'bricks' )
+			),
 			'showInfo'                         => esc_html__( 'Show info', 'bricks' ),
 			'showFullscreen'                   => esc_html__( 'Show fullscreen', 'bricks' ),
 			'showTitle'                        => esc_html__( 'Show title', 'bricks' ),
@@ -1466,7 +1510,10 @@ class Builder {
 			'themeStyleActive'                 => esc_html__( 'Active style', 'bricks' ),
 			'themeStyleActiveInfo'             => esc_html__( 'Set condition(s) to apply selected theme style to your entire website or certain areas.', 'bricks' ),
 			'themeStyleNameExists'             => esc_html__( 'The style name entered already exists. Please choose a different name.', 'bricks' ),
-			'themeStyleSelectInfo'             => sprintf( esc_html__( 'Select a theme style or create a new one to style your website (%s).', 'bricks' ), Helpers::article_link( 'theme-styles', esc_html__( 'learn more', 'bricks' ) ) ),
+			'themeStyleSelectInfo'             => sprintf(
+				esc_html__( 'Select a theme style or create a new one to style your website (%s).', 'bricks' ),
+				Helpers::article_link( 'theme-styles', esc_html__( 'learn more', 'bricks' ) )
+			),
 			'themeStyleCreated'                => esc_html__( 'Theme style created', 'bricks' ),
 			'themeStyleDeleted'                => esc_html__( 'Theme style deleted', 'bricks' ),
 			'themeStyleNewName'                => esc_html__( 'New theme style name', 'bricks' ),
@@ -1812,12 +1859,19 @@ class Builder {
 		$template_preview_post_id = ! empty( $template_settings['templatePreviewPostId'] ) ? $template_settings['templatePreviewPostId'] : 0;
 
 		$load_data = [
-			'fullAccess'       => Capabilities::current_user_has_full_access(),
 			'breakpoints'      => Breakpoints::$breakpoints,
 			'breakpointActive' => Breakpoints::$base_key,
 			'themeStyles'      => $theme_styles,
 			'themeStyleActive' => $theme_style_active,
 			'pinnedElements'   => get_option( BRICKS_DB_PINNED_ELEMENTS, [] ),
+
+			'fullAccess'       => Capabilities::current_user_has_full_access(),
+			'userCan'          => [
+				'executeCode'  => Capabilities::current_user_can_execute_code(),
+				'uploadSvg'    => Capabilities::current_user_can_upload_svg(),
+				'publishPosts' => current_user_can( 'publish_posts' ),
+				'publishPages' => current_user_can( 'publish_pages' ),
+			],
 		];
 
 		// Add color palettes to load_data

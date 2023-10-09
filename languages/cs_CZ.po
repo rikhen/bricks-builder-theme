@@ -5831,7 +5831,7 @@ msgstr "Zakázání vlastních polí WordPress v rozevíracím seznamu"
 
 #: ../includes/admin/admin-screen-settings.php:631
 msgid ""
-"Disable for better in-builder performance. Using dynamic data tags like "
+"Set for better in-builder performance. Using dynamic data tags like "
 "{cf_my_wordpress_field} is still possible."
 msgstr ""
 "Zakázat pro lepší výkon v sestavení. Použití dynamických datových značek, "

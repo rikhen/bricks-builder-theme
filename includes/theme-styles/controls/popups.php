@@ -8,9 +8,13 @@ $popup_controls = \Bricks\Popups::get_controls();
  *
  * @since 1.8.2
  */
-$popup_controls = array_filter( $popup_controls, function( $control, $key ) {
-	return ( strpos( $key, 'popupLimit' ) === false && ( $control['type'] === 'separator' || isset( $control['css'] ) ) );
-}, ARRAY_FILTER_USE_BOTH );
+$popup_controls = array_filter(
+	$popup_controls,
+	function( $control, $key ) {
+		return ( strpos( $key, 'popupLimit' ) === false && ( $control['type'] === 'separator' || isset( $control['css'] ) ) );
+	},
+	ARRAY_FILTER_USE_BOTH
+);
 
 return [
 	'name'     => 'popup',

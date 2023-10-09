@@ -9214,7 +9214,7 @@ msgstr "Onemogočite polja po meri WordPressa v spustni vrstici"
 #: ../build/bricks/includes/admin/admin-screen-settings.php:652,
 #: ../includes/admin/admin-screen-settings.php:652
 msgid ""
-"Disable for better in-builder performance. Using dynamic data tags like "
+"Set for better in-builder performance. Using dynamic data tags like "
 "{cf_my_wordpress_field} is still possible."
 msgstr ""
 "Onemogočite za boljšo zmogljivost v gradniku. Uporaba dinamičnih podatkovnih "

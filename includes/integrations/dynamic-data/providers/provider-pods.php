@@ -93,7 +93,7 @@ class Provider_Pods extends Base {
 		$filters = $this->get_filters_from_args( $args );
 
 		// STEP: Get the value
-		$value = $this->get_raw_value( $field, $post_id );
+		$value = $this->get_raw_value( $field, $post_id, $filters );
 
 		switch ( $field['type'] ) {
 
@@ -160,16 +160,16 @@ class Provider_Pods extends Base {
 	 * @param [type] $post_id
 	 * @return void
 	 */
-	public function get_raw_value( $field, $post_id ) {
+	public function get_raw_value( $field, $post_id, $filters = [] ) {
 		// Post, Term or User ID
 		$object_id = $this->get_object_id( $field, $post_id );
 
 		// Boolean flag to determine when to use pods_field_display() instead of pods_field()
-    $use_display = in_array( $field['type'], ['boolean', 'date', 'datetime', 'time'] )
-			|| ( $field['type'] === 'pick' && isset( $field['pick_object'] ) && $field['pick_object'] === 'custom-simple' ); // @since 1.8.2
+		$use_display = in_array( $field['type'], [ 'boolean', 'date', 'datetime', 'time' ] ) ||
+		( $field['type'] === 'pick' && isset( $field['pick_object'] ) && $field['pick_object'] === 'custom-simple' && ! array_key_exists( 'value', $filters ) );
 
-    // Use appropriate method depending on the flag
-    $value = $use_display
+		// Use appropriate method depending on the flag
+		$value = $use_display
 			? pods_field_display( $field['object'], $object_id, $field['name'] )
 			: pods_field( $field['object'], $object_id, $field['name'] );
 

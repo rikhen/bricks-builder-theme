@@ -18,12 +18,6 @@ class Compatibility {
 		// Weglot
 		if ( function_exists( 'weglot_get_current_language' ) ) {
 			add_action( 'init', [ $instance, 'weglot_disable_translation' ] );
-    }
-
-		// Polylang
-		if ( function_exists( 'pll_the_languages' ) ) {
-			add_filter( 'bricks/helpers/get_posts_args', [ $instance, 'polylang_get_posts_args' ] );
-			add_filter( 'bricks/ajax/get_pages_args', [ $instance, 'polylang_get_posts_args' ] );
 		}
 
 		// Paid Memberships Pro: Restrict Bricks content (@since 1.5.4)
@@ -50,11 +44,6 @@ class Compatibility {
 
 		// Yith WooCommerce Product Add-Ons: dequeue script at priority 11 to make sure it's enqueued
 		add_action( 'wp_enqueue_scripts', [ $instance, 'yith_wapo_dequeue_script' ], 11 );
-
-		// WPML (@since 1.7)
-		if ( function_exists( 'icl_object_id' ) ) {
-			add_filter( 'bricks/database/bricks_get_all_templates_by_type_args', [ $instance, 'wpml_get_posts_args' ] );
-		}
 	}
 
 	/**
@@ -113,21 +102,6 @@ class Compatibility {
 	}
 
 	/**
-	 * Polylang - set the query arg to get all the posts/pages languages
-	 *
-	 * @param array $query_args
-	 * @return array
-	 */
-	public function polylang_get_posts_args( $query_args ) {
-
-		if ( ! isset( $query_args['lang'] ) ) {
-			$query_args['lang'] = 'all';
-		}
-
-		return $query_args;
-	}
-
-	/**
 	 * Check if user has membership access to Bricks content in Helpers::render_with_bricks
 	 *
 	 * @since 1.5.4
@@ -145,21 +119,5 @@ class Compatibility {
 		if ( bricks_is_builder() && wp_script_is( 'yith_wapo_front', 'enqueued' ) ) {
 			wp_dequeue_script( 'yith_wapo_front' );
 		}
-	}
-
-	/**
-	 * WPML: Add 'suppress_filters' => false query arg to get correct templates of currently viewed language.
-	 *
-	 * @param array $query_args
-	 * @return array
-	 *
-	 * @since 1.7
-	 */
-	public function wpml_get_posts_args( $query_args ) {
-		if ( ! isset( $query_args['suppress_filters'] ) ) {
-			$query_args['suppress_filters'] = false;
-		}
-
-		return $query_args;
 	}
 }

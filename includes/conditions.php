@@ -475,9 +475,12 @@ class Conditions {
 			];
 
 			// Use array_filter to get controls for current group and must have a key
-			$group_controls = array_filter( self::$options, function( $option ) use ( $group ) {
-				return $option['group'] === $group['name'] && ! empty( $option['key'] );
-			} );
+			$group_controls = array_filter(
+				self::$options,
+				function( $option ) use ( $group ) {
+					return $option['group'] === $group['name'] && ! empty( $option['key'] );
+				}
+			);
 
 			// Add controls for current group
 			foreach ( $group_controls as $control ) {
@@ -591,7 +594,7 @@ class Conditions {
 					case 'time':
 					case 'datetime':
 						// Use current_time UTC
-						$value    = current_time( 'timestamp', true );
+						$value = time();
 
 						if ( ! $required ) {
 							// No user input, use current time

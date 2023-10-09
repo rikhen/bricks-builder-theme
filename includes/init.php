@@ -30,7 +30,9 @@ class Theme {
 	public $api;
 	public $elements;
 	public $woocommerce;
+	public $polylang;
 	public $integrations_form;
+	public $wpml;
 	public $builder;
 	public $frontend;
 
@@ -106,6 +108,8 @@ class Theme {
 
 		// Integrations
 		$this->integrations_form = new Integrations\Form\Init();
+		$this->polylang          = new Integrations\Polylang\Polylang();
+		$this->wpml              = new Integrations\Wpml\Wpml();
 
 		if ( is_admin() ) {
 			$this->admin     = new Admin();

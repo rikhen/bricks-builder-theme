@@ -122,7 +122,7 @@ class Element_Map extends Element {
 					'unsplash' => false,
 				],
 
-				'infoWidth' => [
+				'infoWidth'        => [
 					'label'       => esc_html__( 'Width', 'bricks' ),
 					'type'        => 'number',
 					'inline'      => true,

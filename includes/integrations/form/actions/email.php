@@ -69,7 +69,6 @@ class Email extends Base {
 			$headers[] = sprintf( 'Bcc: %s', $form->render_data( $form_settings['emailBcc'] ) );
 		}
 
-
 		// Header: 'Reply-To' email address
 		$reply_to_email_address = ! empty( $form_settings['replyToEmail'] ) ? $form->render_data( $form_settings['replyToEmail'] ) : '';
 

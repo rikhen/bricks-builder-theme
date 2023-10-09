@@ -39,8 +39,8 @@ class Element_Accordion_Nested extends Element {
 		];
 
 		$this->controls['independentToggle'] = [
-			'label' => esc_html__( 'Independent toggle', 'bricks' ),
-			'type'  => 'checkbox',
+			'label'       => esc_html__( 'Independent toggle', 'bricks' ),
+			'type'        => 'checkbox',
 			'description' => esc_html__( 'Enable to open & close an item without toggling other items.', 'bricks' ),
 		];
 

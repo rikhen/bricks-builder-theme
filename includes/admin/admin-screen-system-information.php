@@ -107,7 +107,7 @@ $wp_environment['wp_memory_limit'] = [
 		'<span class="%s">%s</span>%s',
 		$memory_limit >= wp_convert_hr_to_bytes( '64M' ) ? 'text-success' : 'text-warning',
 		size_format( $memory_limit ),
-		$memory_limit >= wp_convert_hr_to_bytes( '64M' ) ? '' : ' - ' . esc_html__( 'Recommended wp_memory_limit: 64M (or more)', 'bricks' )  . '<a href="https://academy.bricksbuilder.io/article/requirements/#wp-memory-limit" target="_blank" rel="noopener"><i class="dashicons dashicons-editor-help"></i></a>'
+		$memory_limit >= wp_convert_hr_to_bytes( '64M' ) ? '' : ' - ' . esc_html__( 'Recommended wp_memory_limit: 64M (or more)', 'bricks' ) . '<a href="https://academy.bricksbuilder.io/article/requirements/#wp-memory-limit" target="_blank" rel="noopener"><i class="dashicons dashicons-editor-help"></i></a>'
 	),
 ];
 
@@ -136,7 +136,7 @@ if ( function_exists( 'phpversion' ) ) {
 	$php_version                              = phpversion();
 	$server_environment['server_php_version'] = [
 		'label' => esc_html__( 'PHP version', 'bricks' ),
-		'data' => sprintf(
+		'data'  => sprintf(
 			'<span class="%s">%s</span>%s',
 			$php_version >= 5.4 ? 'text-success' : 'text-warning',
 			$php_version,
@@ -183,9 +183,9 @@ $server_environment['server_php_upload_max_filesize'] = [
 	'label' => esc_html__( 'PHP max upload file size', 'bricks' ),
 	'data'  => sprintf(
 		'<span class="%s">%s</span>%s',
-		wp_convert_hr_to_bytes($upload_max_filesize) >= wp_convert_hr_to_bytes('16M') ? 'text-success' : 'text-danger',
+		wp_convert_hr_to_bytes( $upload_max_filesize ) >= wp_convert_hr_to_bytes( '16M' ) ? 'text-success' : 'text-danger',
 		$upload_max_filesize,
-		wp_convert_hr_to_bytes($upload_max_filesize) >= wp_convert_hr_to_bytes('16M') ? '' : ' - ' . esc_html__( 'Recommended upload_max_filesize: 16M (or more)', 'bricks' ) . '<a href="https://academy.bricksbuilder.io/article/requirements/#max-file-upload-size" target="_blank" rel="noopener"><i class="dashicons dashicons-editor-help"></i></a>'
+		wp_convert_hr_to_bytes( $upload_max_filesize ) >= wp_convert_hr_to_bytes( '16M' ) ? '' : ' - ' . esc_html__( 'Recommended upload_max_filesize: 16M (or more)', 'bricks' ) . '<a href="https://academy.bricksbuilder.io/article/requirements/#max-file-upload-size" target="_blank" rel="noopener"><i class="dashicons dashicons-editor-help"></i></a>'
 	),
 ];
 

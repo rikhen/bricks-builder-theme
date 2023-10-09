@@ -149,6 +149,12 @@ class Settings_Template extends Settings_Base {
 			'label'    => esc_html__( 'Scrolling text color', 'bricks' ),
 			'type'     => 'color',
 			'css'      => [
+				// Logo
+				[
+					'property' => 'color',
+					'selector' => '#brx-header.sticky.scrolling .brxe-logo',
+				],
+
 				// Nav Menu
 				[
 					'property' => 'color',
@@ -175,12 +181,6 @@ class Settings_Template extends Settings_Base {
 				[
 					'property' => 'color',
 					'selector' => '#brx-header.sticky.scrolling .brxe-nav-nested > .brxe-toggle .brxa-inner',
-				],
-
-				// Logo
-				[
-					'property' => 'color',
-					'selector' => '#brx-header.sticky.scrolling .brxe-logo',
 				],
 
 				// Search
@@ -258,8 +258,52 @@ class Settings_Template extends Settings_Base {
 						#brx-header.sticky > .brxe-div',
 					'property' => 'transition',
 				],
+
+				// Logo
+				[
+					'selector' => '#brx-header.sticky .brxe-logo',
+					'property' => 'transition',
+				],
+
+				// Nav menu
 				[
 					'selector' => '#brx-header.sticky .bricks-nav-menu > li > a',
+					'property' => 'transition',
+				],
+				[
+					'selector' => '#brx-header.sticky .bricks-nav-menu > li > .brx-submenu-toggle > a',
+					'property' => 'transition',
+				],
+				[
+					'selector' => '#brx-header.sticky .bricks-nav-menu > li > .brx-submenu-toggle > button > *',
+					'property' => 'transition',
+				],
+
+				// Nav (Nestable)
+				[
+					'selector' => '#brx-header.sticky .brx-nav-nested-items > li > a',
+					'property' => 'transition',
+				],
+				[
+					'selector' => '#brx-header.sticky .brx-nav-nested-items > li > .brx-submenu-toggle',
+					'property' => 'transition',
+				],
+				[
+					'selector' => '#brx-header.sticky .brx-nav-nested-items > li > .brx-submenu-toggle > *',
+					'property' => 'transition',
+				],
+				[
+					'selector' => '#brx-header.sticky .brxe-nav-nested > .brxe-toggle .brxa-inner',
+					'property' => 'transition',
+				],
+
+				// Search
+				[
+					'selector' => '#brx-header.sticky .brxe-search',
+					'property' => 'transition',
+				],
+				[
+					'selector' => '#brx-header.sticky .brxe-search button',
 					'property' => 'transition',
 				],
 			],
@@ -304,13 +348,15 @@ class Settings_Template extends Settings_Base {
 		$this->controls['template_interactions']['fields']['trigger']['options']['hidePopup'] = esc_html__( 'Hide popup', 'bricks' );
 
 		// Show info about "Hide popup" trigger
-		$this->controls['template_interactions']['fields'] = ['hidePopupInfo' => [
-			'type'    => 'info',
-			'content' => esc_html__( 'Target a "CSS selector" on "Hide popup", but not a popup directly! As this action runs after the popup has been closed.', 'bricks' ),
-			'required' => [
-				[ 'trigger', '=', 'hidePopup' ],
+		$this->controls['template_interactions']['fields'] = [
+			'hidePopupInfo' => [
+				'type'     => 'info',
+				'content'  => esc_html__( 'Target a "CSS selector" on "Hide popup", but not a popup directly! As this action runs after the popup has been closed.', 'bricks' ),
+				'required' => [
+					[ 'trigger', '=', 'hidePopup' ],
+				]
 			]
-		] ] + $this->controls['template_interactions']['fields'];
+		] + $this->controls['template_interactions']['fields'];
 
 		/**
 		 * Template Conditions
@@ -339,6 +385,7 @@ class Settings_Template extends Settings_Base {
 						'error'       => esc_html__( 'Error page', 'bricks' ),
 						'terms'       => esc_html__( 'Terms', 'bricks' ),
 						'ids'         => esc_html__( 'Individual', 'bricks' ),
+						'hook'        => esc_html__( 'Hook', 'bricks' ),
 					],
 					'placeholder' => esc_html__( 'Select', 'bricks' ),
 				],
@@ -423,13 +470,43 @@ class Settings_Template extends Settings_Base {
 					'required' => [ 'main', '=', 'ids' ],
 				],
 
+				// @since 1.9.1
+				'hookName'                    => [
+					'type'           => 'text',
+					'label'          => esc_html__( 'Hook name', 'bricks' ),
+					'placeholder'    => 'bricks_before_footer',
+					'hasDynamicData' => false,
+					'required'       => [ 'main', '=', 'hook' ],
+				],
+
+				// @since 1.9.1
+				'hookPriority'                => [
+					'type'           => 'number',
+					'label'          => esc_html__( 'Priority', 'bricks' ),
+					'placeholder'    => 10,
+					'units'          => false,
+					'hasDynamicData' => false,
+					'required'       => [ 'main', '=', 'hook' ],
+				],
+
 				'exclude'                     => [
-					'type'  => 'checkbox',
-					'label' => esc_html__( 'Exclude', 'bricks' ),
+					'type'     => 'checkbox',
+					'label'    => esc_html__( 'Exclude', 'bricks' ),
+					'required' => [ 'main', '!=', 'hook' ],
 				],
 			],
-			// 'description' => esc_html__( 'Set condition(s) to show this template on specific areas of your site.', 'bricks' ),
 		];
+
+		/**
+		 * Not a section template: Remove hook options in builder only (not wp-admin)
+		 *
+		 * @since 1.9.1
+		 */
+		if ( bricks_is_builder() && Templates::get_template_type() !== 'section' ) {
+			unset( $this->controls['templateConditions']['fields']['main']['options']['hook'] );
+			unset( $this->controls['templateConditions']['fields']['hookName'] );
+			unset( $this->controls['templateConditions']['fields']['hookPriority'] );
+		}
 
 		/**
 		 * Template Preview Content (Only visible when editing header or footer templates)

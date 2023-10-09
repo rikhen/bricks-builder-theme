@@ -356,7 +356,7 @@ class Api {
 		}
 
 		// Example: /bricks/v1/load_query_page
-		$bricks_rest_route =  '/' . self::API_NAMESPACE . '/' . $endpoint;
+		$bricks_rest_route = '/' . self::API_NAMESPACE . '/' . $endpoint;
 
 		return $current_rest_route === $bricks_rest_route;
 	}

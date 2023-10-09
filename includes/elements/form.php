@@ -286,11 +286,8 @@ class Element_Form extends Element {
 					'label'       => esc_html__( 'Language', 'bricks' ),
 					'type'        => 'text',
 					'inline'      => true,
-					'description' => sprintf(
-						'<a href="https://github.com/flatpickr/flatpickr/tree/master/src/l10n" target="_blank">%s</a> (de, es, fr, etc.)',
-						esc_html__( 'Language codes', 'bricks' ),
-					),
-					'required' => [ 'type', '=', [ 'datepicker' ] ],
+					'description' => '<a href="https://github.com/flatpickr/flatpickr/tree/master/src/l10n" target="_blank">' . esc_html__( 'Language codes', 'bricks' ) . '</a> (de, es, fr, etc.)',
+					'required'    => [ 'type', '=', [ 'datepicker' ] ],
 				],
 
 				'minTime'                => [
@@ -384,7 +381,7 @@ class Element_Form extends Element {
 				],
 				[
 					'property' => 'font',
-					'selector' => 'select', // Select placeholder
+					'selector' => 'select',
 				],
 			],
 		];
@@ -1452,7 +1449,7 @@ class Element_Form extends Element {
 				<?php if ( $field['type'] === 'select' && ! empty( $field['options'] ) ) { ?>
 				<select <?php echo $this->render_attributes( "field-$index" ); ?>>
 					<?php
-					$select_options     = explode( "\n", $field['options'] );
+					$select_options     = Helpers::parse_textarea_options( $field['options'] );
 					$select_placeholder = false;
 
 					if ( isset( $field['placeholder'] ) ) {
@@ -1473,7 +1470,7 @@ class Element_Form extends Element {
 
 				<?php if ( ! empty( $field['options'] ) && ( $field['type'] === 'checkbox' || $field['type'] === 'radio' ) ) { ?>
 				<ul class="options-wrapper">
-					<?php $options = explode( "\n", $field['options'] ); ?>
+					<?php $options = Helpers::parse_textarea_options( $field['options'] ); ?>
 					<?php foreach ( $options as $key => $value ) { ?>
 				  <li>
 						<input
@@ -1491,7 +1488,7 @@ class Element_Form extends Element {
 					</ul>
 				<?php } ?>
 			</div>
-			<?php
+				<?php
 			}
 
 			// Submit button icon

@@ -284,6 +284,7 @@ class Element_Tabs_Nested extends Element {
 				'children' => [
 					[
 						'name'     => 'div',
+						'label'    => esc_html__( 'Title', 'bricks' ),
 						'settings' => [
 							'_hidden' => [
 								'_cssClasses' => 'tab-title',
@@ -301,6 +302,7 @@ class Element_Tabs_Nested extends Element {
 
 					[
 						'name'     => 'div',
+						'label'    => esc_html__( 'Title', 'bricks' ),
 						'settings' => [
 							'_hidden' => [
 								'_cssClasses' => 'tab-title',
@@ -321,7 +323,7 @@ class Element_Tabs_Nested extends Element {
 			// Content
 			[
 				'name'     => 'block',
-				'label'    => esc_html__( 'Content', 'bricks' ),
+				'label'    => esc_html__( 'Tab content', 'bricks' ),
 				'settings' => [
 					'_hidden' => [
 						'_cssClasses' => 'tab-content',

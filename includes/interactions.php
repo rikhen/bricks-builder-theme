@@ -55,7 +55,7 @@ class Interactions {
 				 *
 				 * @since 1.8.4
 				 */
-				'id' 								            => [
+				'id'                            => [
 					'label'          => esc_html__( 'Interaction ID', 'bricks' ),
 					'type'           => 'text',
 					'clearable'      => false,
@@ -80,12 +80,20 @@ class Interactions {
 						'enterView'         => esc_html__( 'Enter viewport', 'bricks' ),
 						'leaveView'         => esc_html__( 'Leave viewport', 'bricks' ),
 						'animationEnd'      => esc_html__( 'Animation end', 'bricks' ),
+						'ajaxStart'         => esc_html__( ' Query', 'bricks' ) . ' ' . esc_html__( 'AJAX loader', 'bricks' ) . ' (' . esc_html__( 'Start', 'bricks' ) . ')',
+						'ajaxEnd'           => esc_html__( ' Query', 'bricks' ) . ' ' . esc_html__( 'AJAX loader', 'bricks' ) . ' (' . esc_html__( 'End', 'bricks' ) . ')',
 						'browserGroupTitle' => esc_html__( 'Browser', 'bricks' ) . ' / ' . esc_html__( 'Window', 'bricks' ),
 						'scroll'            => esc_html__( 'Scroll', 'bricks' ),
 						'contentLoaded'     => esc_html__( 'Content loaded', 'bricks' ),
 						'mouseleaveWindow'  => esc_html__( 'Mouse leave window', 'bricks' ),
 					],
 					'placeholder' => esc_html__( 'Select', 'bricks' ),
+				],
+
+				'ajaxQueryId'                   => [
+					'label'    => esc_html__( 'Query', 'bricks' ),
+					'type'     => 'query-list',
+					'required' => [ 'trigger', '=', [ 'ajaxStart', 'ajaxEnd' ] ],
 				],
 
 				'delay'                         => [
@@ -104,9 +112,10 @@ class Interactions {
 				/**
 				 * To hold the target interaction id for animationEnd trigger.
 				 * Leave it empty and will use the previous interaction id where action is startAnimation
+				 *
 				 * @since 1.8.3
 				 */
-				'animationId' 								 => [
+				'animationId'                   => [
 					'label'       => esc_html__( 'Target interaction ID', 'bricks' ),
 					'type'        => 'text',
 					'placeholder' => esc_html__( 'Previous interaction ID', 'bricks' ),

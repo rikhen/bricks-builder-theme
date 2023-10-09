@@ -51,7 +51,7 @@ class Element_Tabs extends Element {
 					'type'  => 'text',
 				],
 
-				'anchorId'       => [
+				'anchorId'     => [
 					'label' => esc_html__( 'ID', 'bricks' ),
 					'type'  => 'text',
 				],
@@ -354,7 +354,7 @@ class Element_Tabs extends Element {
 			}
 
 			if ( ! empty( $tab['title'] ) ) {
-				$output .= "<span>{$tab['title']}</span>";
+				$output .= "<span>{$this->render_dynamic_data( $tab['title'] )}</span>";
 			}
 
 			$output .= '</li>';

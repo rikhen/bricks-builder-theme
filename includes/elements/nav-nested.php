@@ -182,10 +182,10 @@ class Element_Nav_Nested extends Element {
 		];
 
 		$this->controls['itemTransform'] = [
-			'group'  => 'item',
-			'label'  => esc_html__( 'Transform', 'bricks' ),
-			'type'   => 'transform',
-			'css'    => [
+			'group' => 'item',
+			'label' => esc_html__( 'Transform', 'bricks' ),
+			'type'  => 'transform',
+			'css'   => [
 				[
 					'property' => 'transform',
 					'selector' => '.brx-nav-nested-items > li{pseudo} > a',
@@ -415,7 +415,7 @@ class Element_Nav_Nested extends Element {
 		];
 
 		$this->controls['dropdownContentWidth'] = [
-			'group' => 'dropdown',
+			'group'    => 'dropdown',
 			'label'    => esc_html__( 'Min. width', 'bricks' ),
 			'type'     => 'number',
 			'units'    => true,
@@ -580,7 +580,7 @@ class Element_Nav_Nested extends Element {
 			'css'   => [
 				[
 					'property' => 'border',
-					'selector' => '.brx-dropdown-content > li',
+					'selector' => '.brx-dropdown-content > li:not(.brxe-dropdown)',
 				],
 				[
 					'property' => 'border',
@@ -641,9 +641,9 @@ class Element_Nav_Nested extends Element {
 		];
 
 		$this->controls['multiLevel'] = [
-			'group'    => 'dropdown',
-			'label'    => esc_html__( 'Enable', 'bricks' ),
-			'type'     => 'checkbox',
+			'group' => 'dropdown',
+			'label' => esc_html__( 'Enable', 'bricks' ),
+			'type'  => 'checkbox',
 		];
 
 		$this->controls['multiLevelBackText'] = [
@@ -651,7 +651,7 @@ class Element_Nav_Nested extends Element {
 			'label'    => esc_html__( 'Back', 'bricks' ) . ': ' . esc_html__( 'Text', 'bricks' ),
 			'type'     => 'text',
 			'inline'   => true,
-			'required' => ['multiLevel', '=', true],
+			'required' => [ 'multiLevel', '=', true ],
 		];
 
 		$this->controls['multiLevelBackTypography'] = [
@@ -659,7 +659,7 @@ class Element_Nav_Nested extends Element {
 			'label'    => esc_html__( 'Back', 'bricks' ) . ': ' . esc_html__( 'Typography', 'bricks' ),
 			'type'     => 'typography',
 			'inline'   => true,
-			'required' => ['multiLevel', '=', true],
+			'required' => [ 'multiLevel', '=', true ],
 			'css'      => [
 				[
 					'property' => 'font',
@@ -673,7 +673,7 @@ class Element_Nav_Nested extends Element {
 			'label'    => esc_html__( 'Back', 'bricks' ) . ': ' . esc_html__( 'Background', 'bricks' ),
 			'type'     => 'color',
 			'inline'   => true,
-			'required' => ['multiLevel', '=', true],
+			'required' => [ 'multiLevel', '=', true ],
 			'css'      => [
 				[
 					'property' => 'background-color',
@@ -815,14 +815,14 @@ class Element_Nav_Nested extends Element {
 		];
 
 		$this->controls['mobileMenuItemAlignItems'] = [
-			'group'     => 'mobile-menu',
-			'label'     => esc_html__( 'Align items', 'bricks' ),
-			'type'      => 'align-items',
-			'exclude'   => [
+			'group'   => 'mobile-menu',
+			'label'   => esc_html__( 'Align items', 'bricks' ),
+			'type'    => 'align-items',
+			'exclude' => [
 				'stretch',
 			],
-			'inline'    => true,
-			'css'       => [
+			'inline'  => true,
+			'css'     => [
 				[
 					'property' => 'justify-content',
 					'selector' => '&.brx-open .brx-submenu-toggle',

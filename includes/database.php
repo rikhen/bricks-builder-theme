@@ -30,6 +30,18 @@ class Database {
 		'wc_form_pay',
 		'wc_thankyou',
 		'wc_order_receipt',
+		// Woo Phase 3
+		'wc_account_dashboard',
+		'wc_account_orders',
+		'wc_account_view_order',
+		'wc_account_downloads',
+		'wc_account_addresses',
+		'wc_account_form_edit_address',
+		'wc_account_form_edit_account',
+		'wc_account_form_login',
+		'wc_account_form_lost_password',
+		'wc_account_form_lost_password_confirmation',
+		'wc_account_reset_password',
 	];
 
 	public static $header_position = 'top';
@@ -44,7 +56,7 @@ class Database {
 	public function __construct() {
 		self::get_global_data();
 
-		add_action( 'pre_get_posts', [ $this, 'custom_pagination' ] );
+		add_action( 'pre_get_posts', [ $this, 'set_main_archive_query' ] );
 
 		// Set active templates
 		add_action( 'wp', [ $this, 'set_active_templates' ] );
@@ -113,29 +125,20 @@ class Database {
 	}
 
 	/**
-	 * Customize WP_Query: Set 'posts_per_page' for archive/search/error template pages
+	 * Customize WP Main Query: Set all query_vars by user for archive/search/error template pages
+	 * So the pagination will not encounter 404 errors
+	 *
+	 * @since 1.9.1
 	 */
-	public function custom_pagination( $query ) {
-		if ( bricks_is_builder() || is_admin() || ! $query->is_main_query() || ! $query->is_paged ) {
+	public function set_main_archive_query( $query ) {
+		if ( bricks_is_builder() || is_admin() || ! $query->is_main_query() ) {
 			return;
 		}
 
 		$post_id = 0;
-		// Check: Is Bricks template?
-		// NOTE: Not working as WP redirects the singular with /page/X to singular URL.
-		if (
-			$query->is_singular &&
-			isset( $query->query_vars['post_type'] ) &&
-			$query->query_vars['post_type'] == BRICKS_DB_TEMPLATE_SLUG &&
-			! empty( $query->query_vars[ BRICKS_DB_TEMPLATE_SLUG ] )
-		) {
-			$post = get_page_by_path( $query->query_vars[ BRICKS_DB_TEMPLATE_SLUG ], OBJECT, BRICKS_DB_TEMPLATE_SLUG );
 
-			$post_id = isset( $post->ID ) ? $post->ID : 0;
-		}
-
-		// Check: Is Archive page?
-		elseif ( $query->is_archive || $query->is_search || $query->is_error || $query->is_home ) {
+		// Archive, Search, Error, Home: Get the active template
+		if ( $query->is_archive || $query->is_search || $query->is_error || $query->is_home ) {
 			// Set active templates
 			self::set_active_templates( $query );
 
@@ -143,12 +146,48 @@ class Database {
 		}
 
 		if ( $post_id ) {
-			$bricks_data = get_post_meta( $post_id, BRICKS_DB_PAGE_CONTENT, true );
+			// Check if any Bricks data is set
+			$bricks_data = self::get_data( $post_id );
+
+			// Start to scan through if any query element is set, main objective is get the query settings for the main archive query
 			if ( is_array( $bricks_data ) ) {
-				// @since 1.8 - Loop through elements to get archive query settings defined by the user, only the first one will be used
+				/**
+				 * STEP: Get nested template data
+				 *
+				 * Now $bricks_data contains all the data from the main template and all nested templates.
+				 *
+				 * @since 1.9.1
+				 */
+				$bricks_data = self::get_nested_template_data( $bricks_data );
+
+				/**
+				 * STEP: Arrange the $bricks_data array
+				 *
+				 * $bricks_data is not sorted by position following the builder structure, we do not know which main query settings should be used if more than 1 query ticked the is_archive_main_query
+				 *
+				 * @since 1.9.1
+				 */
+				$structured_element_ids = self::elements_sequence_in_builder( $bricks_data );
+
+				// Loop through elements follow builder structure sequence, to get main archive query settings defined by the user, only the first one will be used (@since 1.9.1)
 				$archive_query_set = false;
 
-				foreach ( $bricks_data as $element ) {
+				foreach ( $structured_element_ids as $element_id ) {
+					// Find element
+					$element = self::get_element_by_id( $element_id, $bricks_data );
+
+					if ( ! $element ) {
+						continue;
+					}
+
+					// Certain elements 'is_archive_main_query' is not set inside query key.
+					if ( isset( $element['settings']['is_archive_main_query'] ) ) {
+						// WooCommerce Products element
+						if ( $element['name'] === 'woocommerce-products' ) {
+							$element['settings']['query']['is_archive_main_query'] = 1;
+						}
+					}
+
 					// Exit if not a query element
 					if ( empty( $element['settings']['query'] ) ) {
 						continue;
@@ -161,16 +200,17 @@ class Database {
 					$object_type = isset( $element['settings']['query']['objectType'] ) ? $element['settings']['query']['objectType'] : 'post';
 
 					// Set if 'is_archive_main_query' set (still check 'posts_per_page' for backwards-compatibility)
+					// We cannot check posts_per_page, any query element can set it, not bullet proof. (@since 1.9.1)
 					if (
-						! empty( $element['settings']['query']['posts_per_page'] ) ||
-						( in_array( $object_type, Query::archive_query_supported_object_types() ) && isset( $element['settings']['query']['is_archive_main_query'] ) )
+						in_array( $object_type, Query::archive_query_supported_object_types() ) &&
+						isset( $element['settings']['query']['is_archive_main_query'] )
 					) {
 						// NOTE: If it's dynamic data, unable to parse the value, as inside this hook, the dynamic tags are not registered yet
 						// Use the prepared query vars instead of raw element settings (@since 1.8)
-						$query_vars = Query::prepare_query_vars_from_settings( $element['settings'] );
+						$query_vars = Query::prepare_query_vars_from_settings( $element['settings'], $element_id );
 
 						foreach ( $query_vars as $key => $value ) {
-							if ( in_array( $key, Query::archive_query_arguments() ) )  {
+							if ( in_array( $key, Query::archive_query_arguments() ) ) {
 								$query->set( $key, $value );
 							}
 						}
@@ -442,7 +482,7 @@ class Database {
 		// Last changed timestamp is set on Templates::flush_templates_cache()
 		$last_changed = wp_cache_get_last_changed( 'bricks_' . BRICKS_DB_TEMPLATE_SLUG );
 
-		// @since 1.7.1 - Prefxi cache key with get_locale() to ensure correct templates are loaded for different languages (@see #862jdhqgr)
+		// @since 1.7.1 - Prefix cache key with get_locale() to ensure correct templates are loaded for different languages (@see #862jdhqgr)
 		$cache_key = get_locale() . '_all_templates_' . $last_changed;
 
 		$output = wp_cache_get( $cache_key, 'bricks' );
@@ -1116,5 +1156,172 @@ class Database {
 		if ( is_object( $object ) ) {
 			return strtolower( get_class( $object ) );
 		}
+	}
+
+	/**
+	 * Recursively retrieve nested template data
+	 *
+	 * @return array
+	 *
+	 * @since 1.9.1
+	 */
+	public static function get_nested_template_data( $bricks_data = [] ) {
+		// If the input is not an array, return it as is
+		if ( ! is_array( $bricks_data ) ) {
+			return $bricks_data;
+		}
+
+		// STEP: Find template elements in the array
+		$found_template_elements = array_filter(
+			$bricks_data,
+			function( $element ) {
+				return isset( $element['name'] ) && in_array( $element['name'], [ 'template' ] );
+			}
+		);
+
+		// If no template elements found, return the original array
+		if ( empty( $found_template_elements ) ) {
+			return $bricks_data;
+		}
+
+		// STEP: Retrieve nested template data from the $found_template_elements
+		$nested_template_data = [];
+
+		foreach ( $found_template_elements as $element ) {
+			$template_id = isset( $element['settings']['template'] ) ? $element['settings']['template'] : false;
+
+			// If no template ID found, skip to the next element
+			if ( ! $template_id ) {
+				continue;
+			}
+
+			// Retrieve the template data using the template ID
+			$template_data = get_post_meta( $template_id, BRICKS_DB_PAGE_CONTENT, true );
+
+			// If template data found, merge it into the $nested_template_data
+			if ( ! empty( $template_data ) && is_array( $template_data ) ) {
+				// Store the template data in $nested_template_data
+				$nested_template_data = array_replace_recursive( $nested_template_data, $template_data );
+				// Store the template data in the page data (might be used later)
+				self::$page_data['template_data'][ $template_id ] = $template_data;
+			}
+		}
+
+		// STEP: Maybe there are nested template element inside $nested_template_data (recursion)
+		$recursive_nested_template_data = self::get_nested_template_data( $nested_template_data );
+
+		if ( ! empty( $recursive_nested_template_data ) ) {
+			$bricks_data = array_merge_recursive( $bricks_data, $recursive_nested_template_data );
+		}
+
+		return $bricks_data;
+	}
+
+	/**
+	 * Retrieve template data from template elements
+	 *
+	 * @since 1.9.1
+	 */
+	public static function get_template_elements_data( $elements = [] ) {
+		// If no elements provided, return an empty array
+		if ( empty( $elements ) ) {
+			return [];
+		}
+
+		// Initialize the array to store nested template data
+		$nested_template_data = [];
+
+		// Process each element to retrieve nested templates
+		foreach ( $elements as $element ) {
+			$template_id = isset( $element['settings']['template'] ) ? $element['settings']['template'] : false;
+
+			// If no template ID found, skip to the next element
+			if ( ! $template_id ) {
+				continue;
+			}
+
+			// Retrieve the template data using the template ID
+			$template_data = self::get_data( $template_id );
+
+			// If template data found, merge it into the $nested_template_data
+			if ( ! empty( $template_data ) && is_array( $template_data ) ) {
+				$nested_template_data = array_replace_recursive( $nested_template_data, $template_data );
+				// Store the template data in the page data
+				self::$page_data['template_data'][ $template_id ] = $template_data;
+			}
+		}
+
+		return $nested_template_data;
+	}
+
+	/**
+	 * Get elements sequence in builder
+	 *
+	 * This is used to determine the order of elements in the builder.
+	 *
+	 * @since 1.9.1
+	 *
+	 * @return array (sequence of ids)
+	 */
+	public static function elements_sequence_in_builder( $elements ) {
+		$top_level_elements = [];
+
+		// Get top level elements
+		foreach ( $elements as $element ) {
+			if ( ! isset( $element['parent'] ) || empty( $element['parent'] ) ) {
+				$top_level_elements[] = $element;
+			}
+		}
+
+		$sequence_of_ids = [];
+
+		// Get sequence of ids starting from top level elements
+		foreach ( $top_level_elements as $element ) {
+			$sequence_of_ids[] = $element['id'];
+			$sequence_of_ids   = array_merge( $sequence_of_ids, self::get_ids_by_children( $elements, $element ) );
+		}
+
+		return $sequence_of_ids;
+	}
+
+	/**
+	 * Get sequence of ids by children
+	 *
+	 * @since 1.9.1
+	 */
+	public static function get_ids_by_children( $elements, $parent_element ) {
+		$sequence     = array();
+		$children_ids = isset( $parent_element['children'] ) ? $parent_element['children'] : false;
+		// Follow the order of the children
+		foreach ( $children_ids as $child_id ) {
+			$sequence[]    = $child_id;
+			$child_element = self::get_element_by_id( $child_id, $elements );
+
+			if ( is_array( $child_element ) && isset( $child_element['children'] ) && ! empty( $child_element['children'] ) ) {
+				$sequence = array_merge( $sequence, self::get_ids_by_children( $elements, $child_element ) ); // Recursion
+			}
+		}
+
+		return $sequence;
+	}
+
+	/**
+	 * Get the element by id from elements array
+	 *
+	 * @since 1.9.1
+	 */
+	public static function get_element_by_id( $element_id, $elements ) {
+		$element = array_filter(
+			$elements,
+			function( $element ) use ( $element_id ) {
+				return $element['id'] === $element_id;
+			}
+		);
+
+		if ( ! empty( $element ) ) {
+			return array_shift( $element );
+		}
+
+		return false;
 	}
 }

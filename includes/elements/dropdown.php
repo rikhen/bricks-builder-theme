@@ -82,10 +82,10 @@ class Element_Dropdown extends Element {
 		];
 
 		$this->controls['iconPadding'] = [
-			'group'    => 'icon',
-			'label'    => esc_html__( 'Icon padding', 'bricks' ),
-			'type'     => 'spacing',
-			'css'      => [
+			'group' => 'icon',
+			'label' => esc_html__( 'Icon padding', 'bricks' ),
+			'type'  => 'spacing',
+			'css'   => [
 				[
 					'property' => 'padding',
 					'selector' => '.brx-submenu-toggle button',
@@ -208,42 +208,41 @@ class Element_Dropdown extends Element {
 		];
 
 		$this->controls['caretColor'] = [
-			'group' => 'caret',
-			'type'  => 'color',
-			'label' => esc_html__( 'Color', 'bricks' ),
-			'css'   => [
+			'group'    => 'caret',
+			'type'     => 'color',
+			'label'    => esc_html__( 'Color', 'bricks' ),
+			'css'      => [
 				[
 					'property' => 'border-bottom-color',
 					'selector' => '> .brx-dropdown-content::before',
 				],
 			],
-			'required' => ['caretSize', '!=', 0],
+			'required' => [ 'caretSize', '!=', 0 ],
 		];
 
-
 		$this->controls['caretTransform'] = [
-			'group' => 'caret',
-			'label' => esc_html__( 'Transform', 'bricks' ),
-			'type'  => 'transform',
-			'css'   => [
+			'group'    => 'caret',
+			'label'    => esc_html__( 'Transform', 'bricks' ),
+			'type'     => 'transform',
+			'css'      => [
 				[
 					'property' => 'transform',
 					'selector' => '> .brx-dropdown-content::before',
 				],
 			],
-			'required' => ['caretSize', '!=', 0],
+			'required' => [ 'caretSize', '!=', 0 ],
 		];
 
 		$this->controls['caretPosition'] = [
-			'group' => 'caret',
-			'label' => esc_html__( 'Position', 'bricks' ),
-			'type'  => 'dimensions',
-			'css'   => [
+			'group'    => 'caret',
+			'label'    => esc_html__( 'Position', 'bricks' ),
+			'type'     => 'dimensions',
+			'css'      => [
 				[
 					'selector' => '> .brx-dropdown-content::before',
 				],
 			],
-			'required' => ['caretSize', '!=', 0],
+			'required' => [ 'caretSize', '!=', 0 ],
 		];
 
 		// CONTENT
@@ -259,7 +258,7 @@ class Element_Dropdown extends Element {
 			'group'    => 'content',
 			'type'     => 'info',
 			'content'  => esc_html__( 'Static dropdown content always toggles on click, not hover.', 'bricks' ),
-			'required' => ['static', '!=', ''],
+			'required' => [ 'static', '!=', '' ],
 		];
 
 		$this->controls['toggleOn'] = [
@@ -273,7 +272,7 @@ class Element_Dropdown extends Element {
 				'both'  => esc_html__( 'Click or hover', 'bricks' ),
 			],
 			'placeholder' => esc_html__( 'Hover', 'bricks' ),
-			'required'    => ['static', '=', ''],
+			'required'    => [ 'static', '=', '' ],
 		];
 
 		$this->controls['contentWidth'] = [
@@ -606,11 +605,20 @@ class Element_Dropdown extends Element {
 
 		$this->controls['megaMenuSelector'] = [
 			'group'       => 'megamenu',
-			'label'       => esc_html__( 'CSS selector', 'bricks' ),
+			'label'       => esc_html__( 'CSS selector', 'bricks' ) . ' (' . esc_html__( 'Horizontal', 'bricks' ) . ')',
 			'type'        => 'text',
 			'inline'      => true,
-			'description' => esc_html__( 'Use width & vertical position of target node.', 'bricks' ),
-			'required'    => ['megaMenu', '=', true],
+			'description' => esc_html__( 'Use width & horizontal position of target node.', 'bricks' ),
+			'required'    => [ 'megaMenu', '=', true ],
+		];
+
+		$this->controls['megaMenuSelectorVertical'] = [
+			'group'       => 'megamenu',
+			'label'       => esc_html__( 'CSS selector', 'bricks' ) . ' (' . esc_html__( 'Vertical', 'bricks' ) . ')',
+			'type'        => 'text',
+			'inline'      => true,
+			'description' => esc_html__( 'Use vertical position of target node.', 'bricks' ),
+			'required'    => [ 'megaMenu', '=', true ],
 		];
 
 		// MULTI LEVEL
@@ -623,18 +631,18 @@ class Element_Dropdown extends Element {
 		];
 
 		$this->controls['multiLevelBackText'] = [
-			'group'    => 'multilevel',
-			'label'    => esc_html__( 'Back', 'bricks' ) . ': ' . esc_html__( 'Text', 'bricks' ),
-			'type'     => 'text',
-			'inline'   => true,
+			'group'  => 'multilevel',
+			'label'  => esc_html__( 'Back', 'bricks' ) . ': ' . esc_html__( 'Text', 'bricks' ),
+			'type'   => 'text',
+			'inline' => true,
 		];
 
 		$this->controls['multiLevelBackTypography'] = [
-			'group'    => 'multilevel',
-			'label'    => esc_html__( 'Back', 'bricks' ) . ': ' . esc_html__( 'Typography', 'bricks' ),
-			'type'     => 'typography',
-			'inline'   => true,
-			'css'      => [
+			'group'  => 'multilevel',
+			'label'  => esc_html__( 'Back', 'bricks' ) . ': ' . esc_html__( 'Typography', 'bricks' ),
+			'type'   => 'typography',
+			'inline' => true,
+			'css'    => [
 				[
 					'property' => 'font',
 					'selector' => '.brx-multilevel-back',
@@ -643,11 +651,11 @@ class Element_Dropdown extends Element {
 		];
 
 		$this->controls['multiLevelBackBackground'] = [
-			'group'    => 'multilevel',
-			'label'    => esc_html__( 'Back', 'bricks' ) . ': ' . esc_html__( 'Background', 'bricks' ),
-			'type'     => 'color',
-			'inline'   => true,
-			'css'      => [
+			'group'  => 'multilevel',
+			'label'  => esc_html__( 'Back', 'bricks' ) . ': ' . esc_html__( 'Background', 'bricks' ),
+			'type'   => 'color',
+			'inline' => true,
+			'css'    => [
 				[
 					'property' => 'background-color',
 					'selector' => '.brx-multilevel-back',
@@ -666,9 +674,9 @@ class Element_Dropdown extends Element {
 				'_hidden' => [
 					'_cssClasses' => 'brx-dropdown-content',
 				],
-				'tag' => 'ul',
+				'tag'     => 'ul',
 			],
-			'children' => [
+			'children'  => [
 				[
 					'name'     => 'text-link',
 					'label'    => 'Nav link',
@@ -700,7 +708,7 @@ class Element_Dropdown extends Element {
 	public function render() {
 		$settings = $this->settings;
 
-		$text = ! empty( $settings['text'] ) ? $settings['text'] : '';
+		$text = ! empty( $settings['text'] ) ? $this->render_dynamic_data( $settings['text'] ) : '';
 
 		// Default toggle SVG (icon click toggle dropdown)
 		$icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg>';
@@ -745,6 +753,10 @@ class Element_Dropdown extends Element {
 
 		if ( ! empty( $settings['megaMenuSelector'] ) ) {
 			$this->set_attribute( '_root', 'data-mega-menu', $settings['megaMenuSelector'] );
+		}
+
+		if ( ! empty( $settings['megaMenuSelectorVertical'] ) ) {
+			$this->set_attribute( '_root', 'data-mega-menu-vertical', $settings['megaMenuSelectorVertical'] );
 		}
 
 		$output = "<{$this->tag} {$this->render_attributes( '_root' )}>";

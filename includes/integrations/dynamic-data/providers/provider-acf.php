@@ -20,7 +20,63 @@ class Provider_Acf extends Base {
 		$this->register_dynamic_function_tag();
 	}
 
-	public function register_tag( $field, $parent_field = [] ) {
+	/**
+	 * Collect nested parent group field name and locations
+	 * To be used in get_acf_group_field_value()
+	 *
+	 * @since 1.9.1
+	 *
+	 * @param array $data
+	 * @param array $parent_field
+	 *
+	 * @return array
+	 */
+	public function get_nested_parent_group_field_data( $data = [], $parent_field = [] ) {
+		if ( ! isset( $data['name'] ) || ! isset( $parent_field['key'] ) ) {
+			return $data;
+		}
+		$field_key = $parent_field['key'];
+
+		// Concatenate the field name with the parent field name
+		$data['name'] = $parent_field['name'] . '_' . $data['name'];
+
+		// Record the parent field locations
+		if ( ! empty( $parent_field['_bricks_locations'] ) ) {
+			$data['_bricks_locations'] = array_merge( $data['_bricks_locations'], $parent_field['_bricks_locations'] );
+		}
+
+		// Record the parent group names
+		if ( ! empty( $parent_field['name'] ) ) {
+			$data['parent_group_names'][] = $parent_field['name'];
+		}
+
+		$found_tag = false;
+
+		// Find from the tags that subfields has key same as $field_key
+		foreach ( $this->tags as $tag ) {
+			$sub_fields = $tag['field']['sub_fields'] ?? false;
+
+			if ( ! $sub_fields ) {
+				continue;
+			}
+
+			foreach ( $sub_fields as $sub_field ) {
+				if ( $sub_field['key'] === $field_key ) {
+					$found_tag = $tag;
+					break 2; // Break out of both loops since the tag is found
+				}
+			}
+		}
+
+		if ( $found_tag ) {
+			// $found_tag['field'] is the nested parent group field
+			$data = $this->get_nested_parent_group_field_data( $data, $found_tag['field'] ); // Recursive
+		}
+
+		return $data;
+	}
+
+	public function register_tag( $field, $parent_field = [], $parent_tag = [] ) {
 		$contexts = self::get_fields_by_context();
 
 		$type = $field['type'];
@@ -57,6 +113,35 @@ class Provider_Acf extends Base {
 					'name' => $parent_field['name'],
 					'type' => $parent_field['type'],
 				];
+
+				// Handle nested group field (@since 1.9.1)
+				if ( $parent_field['type'] === 'group' ) {
+					// Group by parent field, better visual in DD dropdown
+					$tag['group'] = 'ACF: ' . $parent_field['label'];
+
+					$data = [
+						'name'               => $field['name'],
+						'_bricks_locations'  => [],
+						'parent_group_names' => [],
+					];
+
+					$nested_group_data = $this->get_nested_parent_group_field_data( $data, $parent_field );
+
+					$nested_name = 'acf_' . $nested_group_data['name'];
+
+					if ( $nested_name !== $name ) {
+						// This is a nested group field
+						$tag['nested_group'] = true;
+						// Use the nested name
+						$name = $nested_name;
+						// Save the origin grand grand parent field
+						$tag['_bricks_locations'] = $nested_group_data['_bricks_locations'];
+						// Save the parent group names
+						$tag['parent_group_names'] = $nested_group_data['parent_group_names'];
+						// Group by nested parent field, better visual in DD dropdown
+						$tag['group'] = 'ACF: ' . implode( ' > ', array_reverse( $nested_group_data['parent_group_names'] ) );
+					}
+				}
 
 				if ( ! empty( $parent_field['_bricks_locations'] ) ) {
 					$tag['parent']['_bricks_locations'] = $parent_field['_bricks_locations'];
@@ -106,7 +191,7 @@ class Provider_Acf extends Base {
 				// Check for sub-fields (including group field sub-fields)
 				if ( ! empty( $field['sub_fields'] ) ) {
 					foreach ( $field['sub_fields'] as $sub_field ) {
-						$this->register_tag( $sub_field, $field ); // Recursive
+						$this->register_tag( $sub_field, $field, $tag ); // Recursive
 					}
 				}
 
@@ -115,7 +200,7 @@ class Provider_Acf extends Base {
 					foreach ( $field['layouts'] as $layout ) {
 						if ( ! empty( $layout['sub_fields'] ) ) {
 							foreach ( $layout['sub_fields'] as $sub_field ) {
-								$this->register_tag( $sub_field, $field ); // Recursive
+								$this->register_tag( $sub_field, $field, $tag ); // Recursive
 							}
 						}
 					}
@@ -129,7 +214,6 @@ class Provider_Acf extends Base {
 				if ( $context !== self::CONTEXT_TEXT ) {
 					$this->tags[ $name ]['deprecated'] = 1;
 				}
-
 
 			}
 		}
@@ -302,7 +386,7 @@ class Provider_Acf extends Base {
 			if ( isset( $filters['array_value'] ) && is_array( $value ) ) {
 				// Force context to text
 				$context = 'text';
-				$value = $this->return_array_value( $value, $filters );
+				$value   = $this->return_array_value( $value, $filters );
 			}
 
 			// Process field type logic
@@ -435,7 +519,7 @@ class Provider_Acf extends Base {
 
 							// @since 1.8 - Prevent error if date is not valid due to unexpected issue
 							if ( $date instanceof \DateTime ) {
-								$value = $date->format( 'U' );
+								$value                  = $date->format( 'U' );
 								$filters['object_type'] = $field['type'] == 'date_picker' ? 'date' : 'datetime';
 							}
 						}
@@ -496,18 +580,22 @@ class Provider_Acf extends Base {
 		$locations = isset( $field['_bricks_locations'] ) ? $field['_bricks_locations'] : [];
 		$is_option = ! empty( $locations ) && in_array( 'option', $locations );
 
-		if ( isset( $tag_object['parent'] ) && isset( $tag_object['parent']['_bricks_locations'] ) && ! $is_option ) {
+		if ( isset( $tag_object['parent']['_bricks_locations'] ) && ! empty( $tag_object['parent']['_bricks_locations'] ) && ! $is_option ) {
 			// Check if parent field is belongs to options page
 			$is_option = in_array( 'option', $tag_object['parent']['_bricks_locations'] );
+		}
+
+		if ( isset( $tag_object['nested_group'] ) && isset( $tag_object['_bricks_locations'] ) && ! empty( $tag_object['_bricks_locations'] ) && ! $is_option ) {
+			// Check if nested group field is belongs to options page (@since 1.9.1.1)
+			$is_option = in_array( 'option', $tag_object['_bricks_locations'] );
 		}
 
 		// STEP: Check if in a Relationship, or Repeater loop (could have nested groups inside - @since 1.5.1)
 		if ( \Bricks\Query::is_looping() ) {
 			$query_type = \Bricks\Query::get_query_object_type();
 
-			// Check if this loop belongs to this provider
+			// Loop belongs to this provider
 			if ( array_key_exists( $query_type, $this->loop_tags ) ) {
-
 				// Query Loop tag object
 				$loop_tag_object = $this->loop_tags[ $query_type ];
 
@@ -518,8 +606,14 @@ class Provider_Acf extends Base {
 					return '';
 				}
 
-				// If in a loop created by an ACF Relationship field (@since 1.5.1)
-				if ( isset( $loop_tag_object['field']['type'] ) && $loop_tag_object['field']['type'] === 'relationship' ) {
+				/**
+				 * Loop created by an ACF Relationship field (@since 1.5.1)
+				 * OR an ACF Post Object field (@since 1.8.6)
+				 */
+				if (
+					isset( $loop_tag_object['field']['type'] ) &&
+					in_array( $loop_tag_object['field']['type'], [ 'relationship', 'post_object' ] )
+				) {
 					// The loop already sets the global $post
 					$post_id = get_the_ID();
 
@@ -559,6 +653,17 @@ class Provider_Acf extends Base {
 
 				// The current loop object (array of values)
 				$narrow_values = \Bricks\Query::get_loop_object();
+
+				/**
+				 * If the field is a nested group field, the $value_path should use the parent group names
+				 * Eg. Flexible content > Layout > Group > Group > Field
+				 * Eg. Repeater > Group > Group > Field
+				 * (@since 1.9.1.1)
+				 */
+				if ( isset( $tag_object['nested_group'] ) && isset( $tag_object['parent_group_names'] ) ) {
+					// Flexible content field is not supported inside a loop
+					$value_path = $tag_object['parent_group_names'];
+				}
 
 				if ( ! empty( $value_path ) ) {
 					// Start with the top parent field name, and go deeper (groups inside of groups..)
@@ -604,16 +709,36 @@ class Provider_Acf extends Base {
 	 * @since 1.5
 	 */
 	public function get_acf_group_field_value( $tag_object, $post_id ) {
-		$field       = $tag_object['field'];
-		$group_field = get_field_object( $tag_object['parent']['key'] );
+		if ( isset( $tag_object['nested_group'] ) ) {
+			/**
+			 * Support nested groups
+			 *
+			 * @since 1.9.1
+			 */
+			// STEP: Remove the {acf_ and } from the tag name. Eg: groupa_groupb_groupc_field
+			$field_selector = str_replace( '{acf_', '', $tag_object['name'] );
+			$field_selector = str_replace( '}', '', $field_selector );
 
-		if ( ! empty( $tag_object['parent']['_bricks_locations'] ) ) {
-			$group_field['_bricks_locations'] = $tag_object['parent']['_bricks_locations'];
+			// STEP: We need to know the acf_object_id when using get_field(), could be post, term, user, option etc..
+			$acf_object_id = $this->get_object_id( $tag_object, $post_id );
+
+			// STEP: Use ACF get_field() to get the value
+			$value = get_field( $field_selector, $acf_object_id );
+		} else {
+
+			$field       = $tag_object['field'];
+			$group_field = get_field_object( $tag_object['parent']['key'] );
+
+			if ( ! empty( $tag_object['parent']['_bricks_locations'] ) ) {
+				$group_field['_bricks_locations'] = $tag_object['parent']['_bricks_locations'];
+			}
+
+			$group_value = $this->get_acf_field_value( $group_field, $post_id );
+
+			$value = isset( $group_value[ $field['name'] ] ) ? $group_value[ $field['name'] ] : '';
 		}
 
-		$group_value = $this->get_acf_field_value( $group_field, $post_id );
-
-		return isset( $group_value[ $field['name'] ] ) ? $group_value[ $field['name'] ] : '';
+		return $value;
 	}
 
 	/**
@@ -848,10 +973,41 @@ class Provider_Acf extends Base {
 					return $loop_object[ $field['name'] ];
 				}
 
+				// Nested repeater inside nested group (@since 1.9.1)
+				if ( isset( $tag_object['nested_group'] ) ) {
+					// Parent group name first. Eg: ['general', 'actors']
+					$parent_group_names = isset( $tag_object['parent_group_names'] ) ? $tag_object['parent_group_names'] : [];
+
+					if ( empty( $parent_group_names ) ) {
+						return []; // No parent group names, return empty array
+					}
+
+					// if nested group field is belongs to options page, use get_acf_group_field_value() to get the value (@since 1.9.1.1)
+					if ( isset( $tag_object['_bricks_locations'] ) && ! empty( $tag_object['_bricks_locations'] ) && in_array( 'option', $tag_object['_bricks_locations'] ) ) {
+						return $this->get_acf_group_field_value( $tag_object, 0 );
+					}
+
+					// Reverse the array to get the top parent group name first. Eg: ['actors', 'general']
+					$parent_group_names = array_reverse( $parent_group_names );
+					// Add the current group name to the array Eg: ['actors', 'general', 'lists']
+					$parent_group_names[] = $field['name'];
+
+					foreach ( $parent_group_names as $parent_group_name ) {
+						if ( isset( $loop_object[ $parent_group_name ] ) ) {
+							$loop_object = $loop_object[ $parent_group_name ];
+						} else {
+							return []; // Parent group name not found, return empty array
+						}
+					}
+
+					return $loop_object;
+				}
+
 				// If this is a nested relationship
 				if ( is_object( $loop_object ) && is_a( $loop_object, 'WP_Post' ) ) {
 					$acf_object_id = get_the_ID();
 				}
+
 			}
 
 			/**
@@ -877,9 +1033,23 @@ class Provider_Acf extends Base {
 
 			$results = $this->get_acf_group_field_value( $tag_object, $post_id );
 		} else {
-			// @see https://www.advancedcustomfields.com/resources/get_field/
-			// @since 1.7.1 - Use $field['name'] instead of $field['key'], clone type fields $field['key'] is not reliable (see #862jb27g9)
+			/**
+			 * https://www.advancedcustomfields.com/resources/get_field/
+			 *
+			 * @since 1.7.1 - Use $field['name'] instead of $field['key'], clone type fields $field['key'] is not reliable (see #862jb27g9)
+			 */
 			$results = get_field( $field['name'], $acf_object_id );
+		}
+
+		/**
+		 * If the field is a post_object, then the results could be a single post object or an array of post objects
+		 *
+		 * Transform the single post object into an array.
+		 *
+		 * @since 1.9
+		 */
+		if ( $field['type'] === 'post_object' && ! empty( $results ) ) {
+			$results = is_array( $results ) ? $results : [ $results ];
 		}
 
 		return ! empty( $results ) ? $results : [];
@@ -902,7 +1072,7 @@ class Provider_Acf extends Base {
 		$field = $this->loop_tags[ $query->object_type ]['field'];
 
 		// 'relationship' and 'post_object' needs to set the global $post (@since 1.8.6)
-		if ( in_array( $field['type'], ['relationship','post_object'] ) ) {
+		if ( in_array( $field['type'], [ 'relationship','post_object' ] ) ) {
 			global $post;
 			$post = get_post( $loop_object );
 			setup_postdata( $post );

@@ -80,7 +80,7 @@ $controls['siteBackground'] = [
 			'value'    => 'none',
 		],
 	],
-	'exclude'  => 'video',
+	'exclude' => 'video',
 ];
 
 $controls['siteBorder'] = [

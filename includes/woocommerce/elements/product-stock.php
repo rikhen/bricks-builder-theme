@@ -181,7 +181,7 @@ class Product_Stock extends Element {
 
 		// Low stock amount should consider product level and WC Low stock threshold (@since 1.8.3)
 		$product_low_stock_amount = $product->get_low_stock_amount(); // Maybe zero or empty string, can't use absint here or "0" will be ignored
-		$wc_low_stock_amount = absint( max( get_option( 'woocommerce_notify_low_stock_amount' ), 0 ) );
+		$wc_low_stock_amount      = absint( max( get_option( 'woocommerce_notify_low_stock_amount' ), 0 ) );
 
 		// If product level is not set, use WC Low stock threshold
 		$low_stock_amount = $product_low_stock_amount === '' ? $wc_low_stock_amount : absint( $product_low_stock_amount );
@@ -192,7 +192,7 @@ class Product_Stock extends Element {
 		}
 
 		// Set availability text based on user input (@since 1.8.2)
-		switch( $availability['class'] ) {
+		switch ( $availability['class'] ) {
 			case 'in-stock':
 				$availability['availability'] = ! empty( $settings['inStockText'] ) && $is_manage_stock ? $settings['inStockText'] : $availability['availability'];
 				break;

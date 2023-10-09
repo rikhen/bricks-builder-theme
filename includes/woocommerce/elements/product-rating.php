@@ -62,7 +62,7 @@ class Product_Rating extends Element {
 			'tab'      => 'content',
 			'label'    => esc_html__( 'Text', 'bricks' ),
 			'type'     => 'text',
-			'required' => ['noRatingsStars', '=', ''],
+			'required' => [ 'noRatingsStars', '=', '' ],
 		];
 
 		$this->controls['noRatingsStars'] = [
@@ -113,9 +113,7 @@ class Product_Rating extends Element {
 		// No ratings txt
 		elseif ( ! empty( $settings['noRatingsText'] ) ) {
 			echo $settings['noRatingsText'];
-		}
-
-		else {
+		} else {
 			$this->render_element_placeholder( [ 'title' => esc_html__( 'No ratings yet.', 'bricks' ) ] );
 		}
 

@@ -192,9 +192,9 @@ class Element_Nav_Menu extends Element {
 		];
 
 		$this->controls['menuActiveSep'] = [
-			'group'    => 'menu',
-			'type'     => 'separator',
-			'label'    => esc_html__( 'Active', 'bricks' ),
+			'group' => 'menu',
+			'type'  => 'separator',
+			'label' => esc_html__( 'Active', 'bricks' ),
 		];
 
 		$this->controls['menuActiveBackground'] = [
@@ -317,16 +317,16 @@ class Element_Nav_Menu extends Element {
 		];
 
 		$this->controls['menuIconTypography'] = [
-			'group'    => 'menu',
-			'label'    => esc_html__( 'Icon typography', 'bricks' ),
-			'type'     => 'typography',
-			'css'      => [
+			'group'   => 'menu',
+			'label'   => esc_html__( 'Icon typography', 'bricks' ),
+			'type'    => 'typography',
+			'css'     => [
 				[
 					'property' => 'font',
 					'selector' => '.bricks-nav-menu > li.menu-item-has-children > .brx-submenu-toggle{pseudo} button[aria-expanded]',
 				],
 			],
-			'exclude'  => [
+			'exclude' => [
 				'font-family',
 				'font-weight',
 				'font-style',
@@ -383,7 +383,7 @@ class Element_Nav_Menu extends Element {
 			'group'    => 'sub-menu',
 			'type'     => 'info',
 			'content'  => esc_html__( 'Static dropdown content always toggles on click, not hover.', 'bricks' ),
-			'required' => ['submenuStatic', '!=', ''],
+			'required' => [ 'submenuStatic', '!=', '' ],
 		];
 
 		$this->controls['subMenuBackgroundList'] = [
@@ -424,10 +424,10 @@ class Element_Nav_Menu extends Element {
 		];
 
 		$this->controls['subMenuTransform'] = [
-			'group'    => 'sub-menu',
-			'label'    => esc_html__( 'Transform', 'bricks' ),
-			'type'     => 'transform',
-			'css'      => [
+			'group' => 'sub-menu',
+			'label' => esc_html__( 'Transform', 'bricks' ),
+			'type'  => 'transform',
+			'css'   => [
 				[
 					'property' => 'transform',
 					'selector' => '.bricks-nav-menu > li > .sub-menu',
@@ -440,10 +440,10 @@ class Element_Nav_Menu extends Element {
 		];
 
 		$this->controls['subMenuTransformOpen'] = [
-			'group'    => 'sub-menu',
-			'label'    => esc_html__( 'Transform', 'bricks' ) . ' (' . esc_html__( 'Open', 'bricks' ) . ')',
-			'type'     => 'transform',
-			'css'      => [
+			'group' => 'sub-menu',
+			'label' => esc_html__( 'Transform', 'bricks' ) . ' (' . esc_html__( 'Open', 'bricks' ) . ')',
+			'type'  => 'transform',
+			'css'   => [
 				[
 					'property' => 'transform',
 					'selector' => '.bricks-nav-menu > li.open > .sub-menu',
@@ -480,41 +480,41 @@ class Element_Nav_Menu extends Element {
 		];
 
 		$this->controls['caretColor'] = [
-			'group' => 'sub-menu',
-			'type'  => 'color',
-			'label' => esc_html__( 'Color', 'bricks' ),
-			'css'   => [
+			'group'    => 'sub-menu',
+			'type'     => 'color',
+			'label'    => esc_html__( 'Color', 'bricks' ),
+			'css'      => [
 				[
 					'property' => 'border-bottom-color',
 					'selector' => $caret_selector,
 				],
 			],
-			'required' => ['caretSize', '!=', 0],
+			'required' => [ 'caretSize', '!=', 0 ],
 		];
 
 		$this->controls['caretTransform'] = [
-			'group' => 'sub-menu',
-			'label' => esc_html__( 'Transform', 'bricks' ),
-			'type'  => 'transform',
-			'css'   => [
+			'group'    => 'sub-menu',
+			'label'    => esc_html__( 'Transform', 'bricks' ),
+			'type'     => 'transform',
+			'css'      => [
 				[
 					'property' => 'transform',
 					'selector' => $caret_selector,
 				],
 			],
-			'required' => ['caretSize', '!=', 0],
+			'required' => [ 'caretSize', '!=', 0 ],
 		];
 
 		$this->controls['caretPosition'] = [
-			'group' => 'sub-menu',
-			'label' => esc_html__( 'Position', 'bricks' ),
-			'type'  => 'dimensions',
-			'css'   => [
+			'group'    => 'sub-menu',
+			'label'    => esc_html__( 'Position', 'bricks' ),
+			'type'     => 'dimensions',
+			'css'      => [
 				[
 					'selector' => $caret_selector,
 				],
 			],
-			'required' => ['caretSize', '!=', 0],
+			'required' => [ 'caretSize', '!=', 0 ],
 		];
 
 		// ITEM
@@ -602,9 +602,9 @@ class Element_Nav_Menu extends Element {
 		// ACTIVE
 
 		$this->controls['subMenuActiveSep'] = [
-			'group'    => 'sub-menu',
-			'type'     => 'separator',
-			'label'    => esc_html__( 'Active', 'bricks' ),
+			'group' => 'sub-menu',
+			'type'  => 'separator',
+			'label' => esc_html__( 'Active', 'bricks' ),
 		];
 
 		$this->controls['subMenuActiveBackground'] = [
@@ -676,11 +676,11 @@ class Element_Nav_Menu extends Element {
 		];
 
 		$this->controls['subMenuIconSize'] = [
-			'group'    => 'sub-menu',
-			'label'    => esc_html__( 'Icon size', 'bricks' ),
-			'type'     => 'number',
-			'units'    => true,
-			'css'      => [
+			'group' => 'sub-menu',
+			'label' => esc_html__( 'Icon size', 'bricks' ),
+			'type'  => 'number',
+			'units' => true,
+			'css'   => [
 				[
 					'property' => 'height',
 					'selector' => '.bricks-nav-menu .sub-menu .brx-submenu-toggle svg',
@@ -697,10 +697,10 @@ class Element_Nav_Menu extends Element {
 		];
 
 		$this->controls['subMenuIconTransform'] = [
-			'group'    => 'sub-menu',
-			'label'    => esc_html__( 'Icon transform', 'bricks' ),
-			'type'     => 'transform',
-			'css'      => [
+			'group' => 'sub-menu',
+			'label' => esc_html__( 'Icon transform', 'bricks' ),
+			'type'  => 'transform',
+			'css'   => [
 				[
 					'property' => 'transform',
 					'selector' => '.bricks-nav-menu .sub-menu button > *',
@@ -709,10 +709,10 @@ class Element_Nav_Menu extends Element {
 		];
 
 		$this->controls['subMenuIconTransformOpen'] = [
-			'group'    => 'sub-menu',
-			'label'    => esc_html__( 'Icon transform', 'bricks' ) . ' (' . esc_html__( 'Open', 'bricks' ) . ')',
-			'type'     => 'transform',
-			'css'      => [
+			'group' => 'sub-menu',
+			'label' => esc_html__( 'Icon transform', 'bricks' ) . ' (' . esc_html__( 'Open', 'bricks' ) . ')',
+			'type'  => 'transform',
+			'css'   => [
 				[
 					'property' => 'transform',
 					'selector' => '.bricks-nav-menu .sub-menu button[aria-expanded="true"] > *',
@@ -751,10 +751,10 @@ class Element_Nav_Menu extends Element {
 		];
 
 		$this->controls['subMenuIconMargin'] = [
-			'group'    => 'sub-menu',
-			'label'    => esc_html__( 'Icon margin', 'bricks' ),
-			'type'     => 'spacing',
-			'css'      => [
+			'group' => 'sub-menu',
+			'label' => esc_html__( 'Icon margin', 'bricks' ),
+			'type'  => 'spacing',
+			'css'   => [
 				[
 					'property' => 'margin',
 					'selector' => '.bricks-nav-menu .sub-menu .brx-submenu-toggle button',
@@ -763,10 +763,10 @@ class Element_Nav_Menu extends Element {
 		];
 
 		$this->controls['subMenuIconPadding'] = [
-			'group'    => 'sub-menu',
-			'label'    => esc_html__( 'Icon padding', 'bricks' ),
-			'type'     => 'spacing',
-			'css'      => [
+			'group' => 'sub-menu',
+			'label' => esc_html__( 'Icon padding', 'bricks' ),
+			'type'  => 'spacing',
+			'css'   => [
 				[
 					'property' => 'padding',
 					'selector' => '.bricks-nav-menu .sub-menu .brx-submenu-toggle button',
@@ -802,7 +802,7 @@ class Element_Nav_Menu extends Element {
 			'group'       => 'mobile-menu',
 			'label'       => esc_html__( 'Position', 'bricks' ),
 			'type'        => 'select',
-			'small' 		  => true,
+			'small'       => true,
 			'options'     => [
 				'right' => esc_html__( 'Right', 'bricks' ),
 				'left'  => esc_html__( 'Left', 'bricks' ),
@@ -1174,10 +1174,10 @@ class Element_Nav_Menu extends Element {
 		];
 
 		$this->controls['mobileSubMenuPadding'] = [
-			'group'       => 'mobile-menu',
-			'type'        => 'spacing',
-			'label'       => esc_html__( 'Padding', 'bricks' ),
-			'css'         => [
+			'group' => 'mobile-menu',
+			'type'  => 'spacing',
+			'label' => esc_html__( 'Padding', 'bricks' ),
+			'css'   => [
 				[
 					'property' => 'padding',
 					'selector' => '.bricks-mobile-menu .sub-menu > .menu-item > a',
@@ -1367,7 +1367,7 @@ class Element_Nav_Menu extends Element {
 			'group'    => 'megamenu',
 			'type'     => 'info',
 			'content'  => '<a href="' . admin_url( 'nav-menus.php' ) . '" target="_blank">' . esc_html__( 'Edit your WordPress menu item to set a Bricks mega menu template.', 'bricks' ) . '</a>',
-			'required' => ['megaMenu', '!=', ''],
+			'required' => [ 'megaMenu', '!=', '' ],
 		];
 
 		$this->controls['megaMenuSelector'] = [
@@ -1375,8 +1375,8 @@ class Element_Nav_Menu extends Element {
 			'label'       => esc_html__( 'CSS selector', 'bricks' ),
 			'type'        => 'text',
 			'inline'      => true,
-			'description' => esc_html__( 'Use width & vertical position of target node.', 'bricks' ),
-			'required'    => ['megaMenu', '=', true],
+			'description' => esc_html__( 'Use width & horizontal position of target node.', 'bricks' ),
+			'required'    => [ 'megaMenu', '=', true ],
 		];
 
 		$this->controls['megaMenuToggleOn'] = [
@@ -1390,7 +1390,7 @@ class Element_Nav_Menu extends Element {
 				'both'  => esc_html__( 'Click or hover', 'bricks' ),
 			],
 			'placeholder' => esc_html__( 'Hover', 'bricks' ),
-			'required'    => ['megaMenu', '!=', ''],
+			'required'    => [ 'megaMenu', '!=', '' ],
 		];
 
 		$this->controls['megaMenuTransition'] = [
@@ -1399,7 +1399,7 @@ class Element_Nav_Menu extends Element {
 			'type'           => 'text',
 			'hasDynamicData' => false,
 			'inline'         => true,
-			'required'       => ['megaMenu', '=', true],
+			'required'       => [ 'megaMenu', '=', true ],
 			'css'            => [
 				[
 					'property' => 'transition',
@@ -1414,7 +1414,7 @@ class Element_Nav_Menu extends Element {
 			'label'    => esc_html__( 'Transform', 'bricks' ),
 			'inline'   => true,
 			'small'    => true,
-			'required' => ['megaMenu', '=', true],
+			'required' => [ 'megaMenu', '=', true ],
 			'css'      => [
 				[
 					'property' => 'transform',
@@ -1429,7 +1429,7 @@ class Element_Nav_Menu extends Element {
 			'label'    => esc_html__( 'Transform', 'bricks' ) . ' (' . esc_html__( 'Open', 'bricks' ) . ')',
 			'inline'   => true,
 			'small'    => true,
-			'required' => ['megaMenu', '=', true],
+			'required' => [ 'megaMenu', '=', true ],
 			'css'      => [
 				[
 					'property' => 'transform',
@@ -1454,7 +1454,7 @@ class Element_Nav_Menu extends Element {
 			'group'    => 'multilevel',
 			'type'     => 'info',
 			'content'  => '<a href="' . admin_url( 'nav-menus.php' ) . '" target="_blank">' . esc_html__( 'Edit your WordPress menu item to enable multilevel functionality.', 'bricks' ) . '</a>',
-			'required' => ['multiLevel', '!=', ''],
+			'required' => [ 'multiLevel', '!=', '' ],
 		];
 
 		$this->controls['multiLevelBackText'] = [
@@ -1462,7 +1462,7 @@ class Element_Nav_Menu extends Element {
 			'label'    => esc_html__( 'Back', 'bricks' ) . ': ' . esc_html__( 'Text', 'bricks' ),
 			'type'     => 'text',
 			'inline'   => true,
-			'required' => ['multiLevel', '=', true],
+			'required' => [ 'multiLevel', '=', true ],
 		];
 
 		$this->controls['multiLevelBackTypography'] = [
@@ -1470,7 +1470,7 @@ class Element_Nav_Menu extends Element {
 			'label'    => esc_html__( 'Back', 'bricks' ) . ': ' . esc_html__( 'Typography', 'bricks' ),
 			'type'     => 'typography',
 			'inline'   => true,
-			'required' => ['multiLevel', '=', true],
+			'required' => [ 'multiLevel', '=', true ],
 			'css'      => [
 				[
 					'property' => 'font',
@@ -1484,7 +1484,7 @@ class Element_Nav_Menu extends Element {
 			'label'    => esc_html__( 'Back', 'bricks' ) . ': ' . esc_html__( 'Background', 'bricks' ),
 			'type'     => 'color',
 			'inline'   => true,
-			'required' => ['multiLevel', '=', true],
+			'required' => [ 'multiLevel', '=', true ],
 			'css'      => [
 				[
 					'property' => 'background-color',
@@ -1511,29 +1511,37 @@ class Element_Nav_Menu extends Element {
 		$output = '';
 
 		// Find the menu item with menu_item_parent = $parent_id (@since 1.8.4)
-		$populating_menu_items = array_filter( $menu_items, function( $menu_item ) use ( $parent_id ) {
-			return $menu_item->menu_item_parent == $parent_id;
-		} );
+		$populating_menu_items = array_filter(
+			$menu_items,
+			function( $menu_item ) use ( $parent_id ) {
+				return $menu_item->menu_item_parent == $parent_id;
+			}
+		);
 
 		foreach ( $populating_menu_items as $menu_item ) {
 			// Render menu item link
-			$menu_item_link = Frontend::render_element( [
-				'name'     => 'text-link',
-				'settings' => [
-					'text' => $menu_item->title,
-					'link' => [
-						'type' => 'external',
-						'url'  => $menu_item->url,
+			$menu_item_link = Frontend::render_element(
+				[
+					'name'     => 'text-link',
+					'settings' => [
+						'text' => $menu_item->title,
+						'link' => [
+							'type' => 'external',
+							'url'  => $menu_item->url,
+						],
 					],
-				],
-			] );
+				]
+			);
 
 			$sub_menu_html = '';
 
 			// Find sub menu items of current menu item (@since 1.8.4)
-			$sub_menu_items = array_filter( $menu_items, function( $sub_menu_item ) use ( $menu_item ) {
-				return $sub_menu_item->menu_item_parent == $menu_item->ID;
-			} );
+			$sub_menu_items = array_filter(
+				$menu_items,
+				function( $sub_menu_item ) use ( $menu_item ) {
+					return $sub_menu_item->menu_item_parent == $menu_item->ID;
+				}
+			);
 
 			// Render sub menu items - Recursion (@since 1.8.4)
 			if ( ! empty( $sub_menu_items ) ) {
@@ -1542,12 +1550,14 @@ class Element_Nav_Menu extends Element {
 
 			// Render dropdown for sub menu
 			if ( $sub_menu_html ) {
-				$dropdown = Frontend::render_element( [
-					'name' => 'dropdown',
-					'settings' => [
-						'tag' => 'li',
-					],
-				] );
+				$dropdown = Frontend::render_element(
+					[
+						'name'     => 'dropdown',
+						'settings' => [
+							'tag' => 'li',
+						],
+					]
+				);
 
 				// Insert menu item link before dropdown button
 				$dropdown_button_start = strpos( $dropdown, '<button' );
@@ -1574,13 +1584,13 @@ class Element_Nav_Menu extends Element {
 		$settings = $this->settings;
 
 		// Get menu (term ID)
-		$menu = ! empty( $settings['menu'] ) ? $settings['menu'] : '';
+		$menu                    = ! empty( $settings['menu'] ) ? $settings['menu'] : '';
 		$this->wp_nav_menu_items = wp_get_nav_menu_items( $menu );
 
 		// STEP: Check: Nav menu is inside dropdown content (@since 1.8)
-		$parent_id = ! empty( $this->element['parent'] ) ? $this->element['parent'] : false;
-		$parent_element = $parent_id && ! empty( Frontend::$elements[$parent_id] ) ? Frontend::$elements[$parent_id] : false;
-		$parent_element_classes = $parent_element && ! empty( $parent_element['settings']['_hidden']['_cssClasses'] ) ? $parent_element['settings']['_hidden']['_cssClasses'] : '';
+		$parent_id                  = ! empty( $this->element['parent'] ) ? $this->element['parent'] : false;
+		$parent_element             = $parent_id && ! empty( Frontend::$elements[ $parent_id ] ) ? Frontend::$elements[ $parent_id ] : false;
+		$parent_element_classes     = $parent_element && ! empty( $parent_element['settings']['_hidden']['_cssClasses'] ) ? $parent_element['settings']['_hidden']['_cssClasses'] : '';
 		$builder_is_inside_dropdown = isset( $this->element['insideDropdown'] );
 
 		// Parent element is dropdown content: Render WP menu inside dropdown content
@@ -1783,7 +1793,7 @@ class Element_Nav_Menu extends Element {
 			// Top level
 			if ( $depth === 0 ) {
 				if ( ! empty( $settings['menuIcon'] ) ) {
-					$icon = self::render_icon( $settings['menuIcon'], ['menu-item-icon' ] );
+					$icon = self::render_icon( $settings['menuIcon'], [ 'menu-item-icon' ] );
 				}
 
 				$icon_position = ! empty( $settings['menuIconPosition'] ) ? $settings['menuIconPosition'] : 'right';
@@ -1792,7 +1802,7 @@ class Element_Nav_Menu extends Element {
 			// Submenu
 			else {
 				if ( ! empty( $settings['subMenuIcon'] ) ) {
-					$icon = self::render_icon( $settings['subMenuIcon'], ['menu-item-icon' ] );
+					$icon = self::render_icon( $settings['subMenuIcon'], [ 'menu-item-icon' ] );
 				}
 
 				$icon_position = ! empty( $settings['subMenuIconPosition'] ) ? $settings['subMenuIconPosition'] : 'right';
@@ -1822,8 +1832,8 @@ class Element_Nav_Menu extends Element {
 			// Add icon HTML after menu item link
 			// https://www.accessibility-developer-guide.com/examples/widgets/dropdown/
 			$aria_label = $item->title . ' ' . esc_html__( 'Sub menu', 'bricks' );
-			$icon   = '<button aria-expanded="false" aria-label="' . esc_attr( $aria_label ) . '">' . $icon . '</button>';
-			$output = '<div class="brx-submenu-toggle icon-' . $icon_position . '">' . $output . $icon. '</div>';
+			$icon       = '<button aria-expanded="false" aria-label="' . esc_attr( $aria_label ) . '">' . $icon . '</button>';
+			$output     = '<div class="brx-submenu-toggle icon-' . $icon_position . '">' . $output . $icon . '</div>';
 		}
 
 		// STEP: Append mega menu template HTML to menu item (@since 1.8)
@@ -1885,7 +1895,7 @@ class Element_Nav_Menu extends Element {
 	 *
 	 * @since 1.8
 	 */
-	public function get_mega_menu_template_id( $menu_item_id )  {
+	public function get_mega_menu_template_id( $menu_item_id ) {
 		// Return: Mega menu not enabled
 		if ( ! isset( $this->settings['megaMenu'] ) ) {
 			return;
@@ -1899,7 +1909,7 @@ class Element_Nav_Menu extends Element {
 	 *
 	 * @since 1.8
 	 */
-	public function is_multilevel( $menu_item_id )  {
+	public function is_multilevel( $menu_item_id ) {
 		// Return: Multilevel not enabled
 		if ( ! isset( $this->settings['multiLevel'] ) ) {
 			return;

@@ -120,13 +120,20 @@ class Provider_Woo extends Base {
 				'label' => esc_html__( 'Order email', 'bricks' ),
 				'group' => 'WooCommerce',
 			],
+
+			// Woo Phase 3
+			// NOTE: Not in use
+			// 'woo_my_account_endpoint'  => [
+			// 'label' => esc_html__( 'My account endpoint', 'bricks' ),
+			// 'group' => 'WooCommerce',
+			// ],
 		];
 
 		return $tags;
 	}
 
 	/**
-	 * Main function to render the tag value for WordPress provider
+	 * Main function to render the tag value for WooCommerce provider
 	 *
 	 * @param [type] $tag
 	 * @param [type] $post
@@ -485,6 +492,42 @@ class Provider_Woo extends Base {
 				$order = $this->get_order();
 				$value = $order ? $order->get_billing_email() : '';
 				break;
+
+			/**
+			 * Woo Phase 3 - default return endpoint Label, support :url
+			 *
+			 * Endpoints: dashboard, orders, downloads, edit-address, edit-account, customer-logout
+			 *
+			 * NOTE: Not in use!
+			 */
+			// case 'my_account_endpoint':
+			// $filters['skip_sanitize'] = true;
+			// $is_url = isset( $filters['url'] ) ? $filters['url'] : false;
+			// $endpoint_from_user = isset( $filters['meta_key'] ) ? $filters['meta_key'] : false;
+			// $endpoint = false;
+
+			// if ( $endpoint_from_user ) {
+			// User entered account endpoint such as {woo_my_account_endpoint:dashboard}
+			// $endpoints = wc_get_account_menu_items();
+
+			// Search the endpoint from the array key
+			// $find_endpoint = array_filter( $endpoints, function( $key ) use ( $endpoint_from_user ) {
+			// return $key === $endpoint_from_user;
+			// }, ARRAY_FILTER_USE_KEY );
+
+			// Once found, pick the endpoint as array with key and value
+			// if ( count( $find_endpoint ) === 1 ) {
+			// $endpoint['endpoint'] = $endpoint_from_user;
+			// $endpoint['label']    = array_values( $find_endpoint )[0];
+			// }
+			// }
+
+			// if ( ! $endpoint ) {
+			// return '';
+			// }
+
+			// $value = $is_url ? esc_url( wc_get_account_endpoint_url( $endpoint['endpoint'] ) ) : esc_html( $endpoint['label'] );
+			// break;
 		}
 
 		// STEP: Apply context (text, link, image, media)
@@ -612,7 +655,7 @@ class Provider_Woo extends Base {
 			}
 		}
 
-		return absint( $stock_amount );
+		return (int) $stock_amount; // @since 1.9.1 - Possible to return negative value when using backorders (#861n84vua)
 	}
 
 	/**

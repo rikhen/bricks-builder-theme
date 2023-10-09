@@ -9103,7 +9103,7 @@ msgstr "下拉選單隱藏WordPress 自定義欄位"
 #: ../build/bricks/includes/admin/admin-screen-settings.php:652,
 #: ../includes/admin/admin-screen-settings.php:652
 msgid ""
-"Disable for better in-builder performance. Using dynamic data tags like "
+"Set for better in-builder performance. Using dynamic data tags like "
 "{cf_my_wordpress_field} is still possible."
 msgstr ""
 "為了獲得更好的性能，請禁用。仍然可以使用動態數據標記，例如 "

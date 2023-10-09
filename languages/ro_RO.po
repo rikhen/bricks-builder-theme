@@ -9369,7 +9369,7 @@ msgstr "Dezactivați câmpurile personalizate WordPress în lista derulantă"
 #: ../build/bricks/includes/admin/admin-screen-settings.php:652,
 #: ../includes/admin/admin-screen-settings.php:652
 msgid ""
-"Disable for better in-builder performance. Using dynamic data tags like "
+"Set for better in-builder performance. Using dynamic data tags like "
 "{cf_my_wordpress_field} is still possible."
 msgstr ""
 "Dezactivați pentru o performanță mai bună în cadrul constructorului. "

@@ -94,7 +94,7 @@ class Element_Svg extends Element {
 	}
 
 	public function render() {
-		$svg_path = ! empty( $this->settings['file']['id']) ? get_attached_file( $this->settings['file']['id'] ) : false;
+		$svg_path = ! empty( $this->settings['file']['id'] ) ? get_attached_file( $this->settings['file']['id'] ) : false;
 		$svg      = $svg_path ? Helpers::file_get_contents( $svg_path ) : false;
 
 		if ( ! $svg ) {

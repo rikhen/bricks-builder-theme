@@ -50,6 +50,28 @@ class Admin {
 
 		// Dismissable HTTPS notice
 		add_action( 'wp_ajax_bricks_dismiss_https_notice', [ $this, 'dismiss_https_notice' ] );
+
+		// Instagram access token
+		add_action( 'wp_ajax_bricks_dismiss_instagram_access_token_notice', [ $this, 'dismiss_instagram_access_token_notice' ] );
+		add_action( 'admin_init', [ $this, 'schedule_instagram_access_token_refresh' ] );
+		add_action( 'bricks_refresh_instagram_access_token', [ $this, 'refresh_instagram_access_token' ] );
+		add_filter( 'cron_schedules', [ $this, 'monthly_cron_schedule' ] );
+	}
+
+	/**
+	 * Set monthly cron schedule
+	 *
+	 * For Instagram Access Token.
+	 *
+	 * @since 1.9.1
+	 */
+	public function monthly_cron_schedule( $schedules ) {
+		$schedules['monthly'] = [
+			'interval' => 30 * DAY_IN_SECONDS,
+			'display'  => __( 'Once Monthly' ),
+		];
+
+		return $schedules;
 	}
 
 	/**
@@ -620,6 +642,51 @@ class Admin {
 						case 'wc_order_receipt':
 							$default_condition = esc_html__( 'Order receipt', 'bricks' );
 							break;
+
+						// Woo Phase 3
+						case 'wc_account_dashboard':
+							$default_condition = esc_html__( 'Account', 'bricks' ) . ' - ' . esc_html__( 'Dashboard', 'bricks' );
+							break;
+
+						case 'wc_account_orders':
+							$default_condition = esc_html__( 'Account', 'bricks' ) . ' - ' . esc_html__( 'Orders', 'bricks' );
+							break;
+
+						case 'wc_account_view_order':
+							$default_condition = esc_html__( 'Account', 'bricks' ) . ' - ' . esc_html__( 'View order', 'bricks' );
+							break;
+
+						case 'wc_account_downloads':
+							$default_condition = esc_html__( 'Account', 'bricks' ) . ' - ' . esc_html__( 'Downloads', 'bricks' );
+							break;
+
+						case 'wc_account_addresses':
+							$default_condition = esc_html__( 'Account', 'bricks' ) . ' - ' . esc_html__( 'Addresses', 'bricks' );
+							break;
+
+						case 'wc_account_form_edit_address':
+							$default_condition = esc_html__( 'Account', 'bricks' ) . ' - ' . esc_html__( 'Edit address', 'bricks' );
+							break;
+
+						case 'wc_account_form_edit_account':
+							$default_condition = esc_html__( 'Account', 'bricks' ) . ' - ' . esc_html__( 'Edit account', 'bricks' );
+							break;
+
+						case 'wc_account_form_login':
+							$default_condition = esc_html__( 'Account', 'bricks' ) . ' - ' . esc_html__( 'Login', 'bricks' );
+							break;
+
+						case 'wc_account_form_lost_password':
+							$default_condition = esc_html__( 'Account', 'bricks' ) . ' - ' . esc_html__( 'Lost password', 'bricks' );
+							break;
+
+						case 'wc_account_form_lost_password_confirmation':
+							$default_condition = esc_html__( 'Account', 'bricks' ) . ' - ' . esc_html__( 'Lost password', 'bricks' ) . ' (' . esc_html__( 'Confirmation', 'bricks' ) . ')';
+							break;
+
+						case 'wc_account_reset_password':
+							$default_condition = esc_html__( 'Account', 'bricks' ) . ' - ' . esc_html__( 'Reset password', 'bricks' );
+							break;
 					}
 
 					if ( $default_condition ) {
@@ -641,6 +708,16 @@ class Admin {
 						$main_condition = $settings_template_controls['templateConditions']['fields']['main']['options'][ $template_condition['main'] ];
 
 						switch ( $template_condition['main'] ) {
+							case 'hook':
+								// Section templates if section has hook settings (@since 1.9.1)
+								$hook_name     = ! empty( $template_condition['hookName'] ) ? $template_condition['hookName'] : false;
+								$hook_priority = ! empty( $template_condition['hookPriority'] ) ? $template_condition['hookPriority'] : 10;
+
+								if ( $hook_name ) {
+									$sub_conditions[] = $hook_name . ' (' . esc_html__( 'Priority', 'bricks' ) . ': ' . $hook_priority . ')';
+								}
+								break;
+
 							case 'ids':
 								if ( isset( $template_condition['ids'] ) && is_array( $template_condition['ids'] ) ) {
 									foreach ( $template_condition['ids'] as $id ) {
@@ -718,7 +795,9 @@ class Admin {
 		elseif ( $column === 'template_type' ) {
 			$template_types = Setup::$control_options['templateTypes'];
 
-			echo array_key_exists( $template_type, $template_types ) ? $template_types[ $template_type ] : '-';
+			$output_template_type = array_key_exists( $template_type, $template_types ) ? $template_types[ $template_type ] : '-';
+
+			echo $output_template_type;
 		}
 
 		// Template bundle
@@ -941,7 +1020,7 @@ class Admin {
 	public static function admin_notice_regenerate_css_files() {
 		// Show update & CSS files regeneration admin notice ONCE after theme update
 		if ( get_option( BRICKS_CSS_FILES_ADMIN_NOTICE ) ) {
-			$text  = '<p>' . esc_html__( 'You are now running the latest version of Bricks', 'bricks' ) . ': ' . BRICKS_VERSION  . ' 🥳</p>';
+			$text  = '<p>' . esc_html__( 'You are now running the latest version of Bricks', 'bricks' ) . ': ' . BRICKS_VERSION . ' 🥳</p>';
 			$text .= '<p>' . esc_html__( 'Your Bricks CSS files were automatically generated in the background.', 'bricks' ) . '</p>';
 			$text .= '<a class="button button-primary" href="' . admin_url( 'admin.php?page=bricks-settings#tab-performance' ) . '">' . esc_html__( 'Manually regenerate CSS files', 'bricks' ) . '</a>';
 			$text .= '<a class="button" href="https://bricksbuilder.io/changelog/#v' . BRICKS_VERSION . '" target="_blank" style="margin: 4px">' . esc_html__( 'View changelog', 'bricks' ) . '</a>';
@@ -1038,7 +1117,7 @@ class Admin {
 
 		if ( $extra_classes ) {
 			$classes[] = $extra_classes;
-    }
+		}
 
 		return wp_kses_post( sprintf( '<div class="' . implode( ' ', $classes ) . '">%s</div>', wpautop( $text ) ) );
 	}
@@ -1274,6 +1353,115 @@ class Admin {
 		// Dismiss admin notice
 		if ( current_user_can( 'manage_options' ) ) {
 			update_option( 'bricks_https_notice_dismissed', BRICKS_VERSION );
+		}
+
+		wp_die();
+	}
+
+	/**
+	 * Maybe schedule monthly cron job to refresh Instagram access token
+	 *
+	 * @since 1.9.1
+	 */
+	public function schedule_instagram_access_token_refresh() {
+		if ( Database::get_setting( 'instagramAccessToken', false ) && ! wp_next_scheduled( 'bricks_refresh_instagram_access_token' ) ) {
+			wp_schedule_event( time(), 'monthly', 'bricks_refresh_instagram_access_token' );
+		}
+	}
+
+	/**
+	 * Refresh Instagram access token
+	 *
+	 * @since 1.9.1
+	 */
+	public static function refresh_instagram_access_token() {
+		// Get the existing access token from the database
+		$instagram_access_token = Database::get_setting( 'instagramAccessToken', false );
+
+		if ( ! $instagram_access_token ) {
+			return;
+		}
+
+		// The URL to refresh the access token
+		$refresh_url = "https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token={$instagram_access_token}";
+
+		// Make a request to the Instagram API to refresh the token
+		$response = wp_remote_get( $refresh_url );
+
+		if ( is_wp_error( $response ) ) {
+			// Check if the notice has been dismissed
+			if ( ! get_option( 'bricks_instagram_access_token_notice_dismissed', false ) ) {
+				// Log the WP error
+				self::show_admin_notice( 'Instagram access token refresh failed: ' . $response->get_error_message(), 'error', 'brxe-instagram-token-notice' );
+			}
+
+			return;
+		}
+
+		if ( wp_remote_retrieve_response_code( $response ) != 200 ) {
+			// Check if the notice has been dismissed
+			if ( ! get_option( 'bricks_instagram_access_token_notice_dismissed', false ) ) {
+				// Log the non-200 response code
+				self::show_admin_notice( 'Instagram access token refresh failed: Unexpected response from Instagram API.', 'error', 'brxe-instagram-token-notice' );
+			}
+
+			return;
+		}
+
+		/**
+		 * Decode the response body & save the new access token in the database
+		 *
+		 * Might get the same token back if you refresh a token way before its expiry.
+		 */
+		$body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( isset( $body['access_token'] ) ) {
+			// Get global settings
+			$global_settings = get_option( BRICKS_DB_GLOBAL_SETTINGS );
+
+			// Update the instagramAccessToken in the settings array
+			$global_settings['instagramAccessToken'] = $body['access_token'];
+
+			// Save updated global settings in database
+			update_option( BRICKS_DB_GLOBAL_SETTINGS, $global_settings );
+		} else {
+			// Check if the notice has been dismissed
+			if ( ! get_option( 'bricks_instagram_access_token_notice_dismissed', false ) ) {
+				// Log the error (failed to get new access token)
+				self::show_admin_notice( 'Instagram access token refresh failed: Unable to retrieve new access token from API response.', 'error', 'brxe-instagram-token-notice' );
+			}
+		}
+	}
+
+	/**
+	 * Show admin notice
+	 *
+	 * @param string $message Notice message
+	 * @param string $type    success|error|warning|info
+	 * @param string $class   Additional CSS class
+	 *
+	 * @since 1.9.1
+	 */
+	public static function show_admin_notice( $message, $type = 'success', $class = '' ) {
+		add_action(
+			'admin_notices',
+			function() use ( $message, $type, $class ) {
+				echo "<div class='notice notice-{$type} is-dismissible {$class}'><p>{$message}</p></div>";
+			}
+		);
+	}
+
+	/**
+	 * Dismiss Instagram access token notice
+	 *
+	 * @since 1.9.1
+	 */
+	public function dismiss_instagram_access_token_notice() {
+		Ajax::verify_nonce();
+
+		// Dismiss admin notice
+		if ( current_user_can( 'manage_options' ) ) {
+			update_option( 'bricks_instagram_access_token_notice_dismissed', true );
 		}
 
 		wp_die();

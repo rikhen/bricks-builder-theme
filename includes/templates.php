@@ -4,14 +4,19 @@ namespace Bricks;
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 class Templates {
-	public static $template_images               = [];
-	public static $template_element_ids          = [];
+	public static $template_images      = [];
+	public static $template_element_ids = [];
 
 	// All template IDs used on requested URL (@since 1.8.1)
 	public static $rendered_template_ids_on_page = [];
 
+	// All generated inline CSS identifiers (@since 1.9.1)
+	public static $generated_inline_identifier = [];
+
 	public function __construct() {
 		add_filter( 'init', [ $this, 'register_post_type' ] );
+
+		add_action( 'wp_loaded', [ $this, 'assign_templates_to_hooks' ] );
 
 		add_shortcode( 'bricks_template', [ $this, 'render_shortcode' ] );
 
@@ -24,8 +29,6 @@ class Templates {
 		add_action( 'wp_ajax_bricks_convert_template', [ $this, 'convert_template' ] );
 
 		add_action( 'save_post', [ $this, 'flush_templates_cache' ] );
-
-		add_action( 'pre_get_posts', [ $this, 'exclude_templates_from_search_results' ] );
 
 		add_filter( 'wp_sitemaps_post_types', [ $this, 'remove_templates_from_wp_sitemap' ] );
 
@@ -126,6 +129,8 @@ class Templates {
 	 */
 	public function render_shortcode( $attributes = [] ) {
 		$template_id = ! empty( $attributes['id'] ) ? intval( $attributes['id'] ) : false;
+		// @since 1.9.1 - To indicate that the shortcode is rendered on the hook, might need to add inline styles later
+		$is_on_hook = ! empty( $attributes['on_hook'] ) ? true : false;
 
 		if ( ! $template_id ) {
 			return;
@@ -138,7 +143,7 @@ class Templates {
 
 		// Avoid loops: Shortcode rendering inside of itself
 		// Ensure $original_post_id is a bricks template when use for comparison, it might be a term ID (#862k7jcn7)
-		if ( $template_id == $post_id || ( Helpers::is_bricks_template( $original_post_id ) && $template_id == $original_post_id) ) {
+		if ( $template_id == $post_id || ( Helpers::is_bricks_template( $original_post_id ) && $template_id == $original_post_id ) ) {
 			return Helpers::get_element_placeholder(
 				[
 					'title' => esc_html__( 'Not allowed: Infinite template loop.', 'bricks' ),
@@ -186,12 +191,17 @@ class Templates {
 		}
 
 		// STEP: CSS loading method: External files
-		else if ( Database::get_setting( 'cssLoading' ) === 'file' ) {
+		elseif ( Database::get_setting( 'cssLoading' ) === 'file' ) {
 			$template_css_file_dir = Assets::$css_dir . "/post-$template_id.min.css";
 			$template_css_file_url = Assets::$css_url . "/post-$template_id.min.css";
 
 			if ( file_exists( $template_css_file_dir ) ) {
 				wp_enqueue_style( "bricks-post-$template_id", $template_css_file_url, [], filemtime( $template_css_file_dir ) );
+			}
+
+			// When assign section template to hook, some ID level styles are missing when using external files and is looping (@since 1.9.1)
+			if ( $is_on_hook && Query::is_any_looping() ) {
+				Assets::$inline_css_dynamic_data .= $template_inline_css;
 			}
 		}
 
@@ -255,19 +265,36 @@ class Templates {
 		$template_inline_css = Assets::$inline_css[ "template_$template_id" ] ?? '';
 
 		if ( $template_inline_css ) {
+
+			$looping_query_id = Query::is_any_looping();
+
+			if ( $looping_query_id ) {
+				$unique_loop_id = [
+					$template_id,
+					Query::get_query_element_id( $looping_query_id ),
+					Query::get_loop_object_type( $looping_query_id ),
+				];
+			}
+
+			// Unique identifier for inline template inside query loop (@since 1.9.1)
+			$generated_inline_identifier = $looping_query_id ? implode( ':', $unique_loop_id ) : $template_id;
+
 			/**
 			 * Add template inline CSS, if:
 			 * 1. Non-loop template that has not been added already
 			 * 2. Is in-loop template index 0
+			 * 2b. Cannot use index 0 as if we are in second page and using assign section hook, the styles not generated. Use $generated_inline_identifier as workaround - @since 1.9.1
 			 *
 			 * @since 1.8.2
 			 */
 			if (
 				( ! Query::is_looping() && ! in_array( $template_id, Assets::$page_settings_post_ids ) ) ||
-				( Query::is_looping() && Query::get_loop_index() == 0 )
+				( $looping_query_id && ! in_array( $generated_inline_identifier, self::$generated_inline_identifier ) )
 			) {
 				$inline_css .= "\n/* TEMPLATE SHORTCODE CSS (ID: {$template_id}) */\n";
 				$inline_css .= $template_inline_css;
+				// Add generated inline identifier to avoid duplicate inline CSS (@since 1.9.1)
+				self::$generated_inline_identifier[] = $generated_inline_identifier;
 			}
 		}
 
@@ -1801,35 +1828,6 @@ class Templates {
 	}
 
 	/**
-	 * Exclude Bricks template from frontend search
-	 *
-	 * 'exclude_from_search' must be false to allow searching for template in builder under "Populate Content", etc.
-	 *
-	 * @since 1.3.2
-	 */
-	public function exclude_templates_from_search_results( $wp_query ) {
-		// Avoid infinite loop (get_posts in set_active_templates triggers pre_get_posts endless loop)
-		remove_action( 'pre_get_posts', [ $this, 'exclude_templates_from_search_results' ] );
-
-		if ( bricks_is_builder() || is_admin() || ! $wp_query->is_main_query() ) {
-			return;
-		}
-
-		if ( $wp_query->is_search ) {
-			// Get all searchable post types
-			$searchable_post_types = get_post_types( [ 'exclude_from_search' => false ] );
-
-			// Template post type is in search results: Remove
-			if ( is_array( $searchable_post_types ) && in_array( BRICKS_DB_TEMPLATE_SLUG, $searchable_post_types ) ) {
-				unset( $searchable_post_types[ BRICKS_DB_TEMPLATE_SLUG ] );
-
-				// Set the query to remaining searchable post types (exclude bricks_template post type)
-				$wp_query->set( 'post_type', $searchable_post_types );
-			}
-		}
-	}
-
-	/**
 	 * Get IDs of all templates
 	 *
 	 * @see admin.php get_converter_items()
@@ -1840,32 +1838,35 @@ class Templates {
 	 * @since 1.4
 	 */
 	public static function get_all_template_ids( $custom_args = [] ) {
-		$args = array_merge( [
-			'post_type'              => BRICKS_DB_TEMPLATE_SLUG,
-			'posts_per_page'         => -1,
-			'post_status'            => 'any',
-			'fields'                 => 'ids',
-			'no_found_rows'          => true,
-			'update_post_term_cache' => false,
-			'meta_query'             => [
-				'relation' => 'OR',
-				[
-					'key'     => BRICKS_DB_PAGE_HEADER,
-					'value'   => '',
-					'compare' => '!=',
-				],
-				[
-					'key'     => BRICKS_DB_PAGE_CONTENT,
-					'value'   => '',
-					'compare' => '!=',
-				],
-				[
-					'key'     => BRICKS_DB_PAGE_FOOTER,
-					'value'   => '',
-					'compare' => '!=',
+		$args = array_merge(
+			[
+				'post_type'              => BRICKS_DB_TEMPLATE_SLUG,
+				'posts_per_page'         => -1,
+				'post_status'            => 'any',
+				'fields'                 => 'ids',
+				'no_found_rows'          => true,
+				'update_post_term_cache' => false,
+				'meta_query'             => [
+					'relation' => 'OR',
+					[
+						'key'     => BRICKS_DB_PAGE_HEADER,
+						'value'   => '',
+						'compare' => '!=',
+					],
+					[
+						'key'     => BRICKS_DB_PAGE_CONTENT,
+						'value'   => '',
+						'compare' => '!=',
+					],
+					[
+						'key'     => BRICKS_DB_PAGE_FOOTER,
+						'value'   => '',
+						'compare' => '!=',
+					],
 				],
 			],
-		], $custom_args );
+			$custom_args
+		);
 
 		return get_posts( $args );
 	}
@@ -1895,5 +1896,68 @@ class Templates {
 		}
 
 		return $taxonomies;
+	}
+
+	/**
+	 * Frontend: Assign templates to hooks
+	 *
+	 * @since 1.9.1
+	 */
+	public function assign_templates_to_hooks() {
+		// Return: In builder
+		if ( bricks_is_builder() ) {
+			return;
+		}
+
+		// STEP: Get all section templates
+		$section_templates = self::get_templates_query(
+			[
+				'meta_query' => [
+					[
+						'key'     => BRICKS_DB_TEMPLATE_TYPE,
+						'value'   => 'section',
+						'compare' => '=',
+					],
+				],
+			]
+		);
+
+		// Return: No section templates found
+		if ( ! $section_templates->have_posts() ) {
+			return;
+		}
+
+		// STEP: Loop over all section templates with 'Assign to hook' setting
+		foreach ( $section_templates->posts as $section_template ) {
+			$template_id       = $section_template->ID;
+			$template_settings = Helpers::get_template_settings( $template_id );
+
+			// TODO Skip: Previewing the template itself (but can't get post_id in wp_loaded)
+			// if ( $template_id == get_the_ID() ) {
+			// continue;
+			// }
+
+			$template_conditions = ! empty( $template_settings['templateConditions'] ) ? $template_settings['templateConditions'] : [];
+
+			foreach ( $template_conditions as $condition ) {
+				$run_on_hook = ! empty( $condition['main'] ) && $condition['main'] === 'hook';
+
+				if ( ! $run_on_hook ) {
+					continue;
+				}
+
+				$hook_name     = ! empty( $condition['hookName'] ) ? $condition['hookName'] : false;
+				$hook_priority = ! empty( $condition['hookPriority'] ) ? $condition['hookPriority'] : 10;
+
+				add_action(
+					$hook_name,
+					function() use ( $template_id ) {
+						// Use [bricks_template] shortcode to render the template content (included styles)
+						echo do_shortcode( "[bricks_template id='$template_id' on_hook='1']" );
+					},
+					$hook_priority
+				);
+			}
+		}
 	}
 }

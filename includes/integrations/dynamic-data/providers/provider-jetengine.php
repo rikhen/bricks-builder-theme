@@ -206,7 +206,7 @@ class Provider_Jetengine extends Base {
 		if ( isset( $filters['array_value'] ) && is_array( $value ) ) {
 			// Force context to text
 			$context = 'text';
-			$value = $this->return_array_value( $value, $filters );
+			$value   = $this->return_array_value( $value, $filters );
 		}
 
 		// Process field type logic

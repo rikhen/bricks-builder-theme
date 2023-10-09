@@ -12,7 +12,7 @@ $controls['typographyHtml'] = [
 		],
 	],
 	'placeholder' => '62.5%',
-	'info'        => '62.5% html font-size: 1rem = 10px; 100% html font-size: 1rem = 16px',
+	'info'        => "62.5% html font-size: 1rem = 10px\n100% html font-size: 1rem = 16px",
 ];
 
 $controls['typographyBody'] = [
@@ -36,8 +36,7 @@ $controls['typographyHeadings'] = [
 	'css'   => [
 		[
 			'property' => 'font',
-			'selector' => bricks_is_builder() ? ':where(h1, h2, h3, h4, h5, h6)' : 'h1, h2, h3, h4, h5, h6',
-			// Use :where in builder to apply headings theme style settings (@since 1.8.4)
+			'selector' => 'h1, h2, h3, h4, h5, h6',
 		],
 	],
 ];

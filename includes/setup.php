@@ -545,43 +545,54 @@ class Setup {
 			);
 		}
 
-		// Editor mode (don't show when editing Bricks template)
+		// STEP: Editor mode
+
+		// Return: Editing Bricks template
+		if ( get_post_type( get_the_ID() ) === BRICKS_DB_TEMPLATE_SLUG ) {
+			return;
+		}
+
+		$edit_post_link = get_edit_post_link( get_the_ID() );
+
+		// Return: Not an editable post (@since 1.9)
+		if ( ! $edit_post_link ) {
+			return;
+		}
+
 		$editor_mode = Helpers::get_editor_mode( get_the_ID() );
 
-		if ( get_post_type( get_the_ID() ) !== BRICKS_DB_TEMPLATE_SLUG ) {
-			if ( isset( $_GET['editor_mode'] ) && ! empty( $_GET['editor_mode'] ) ) {
-				$editor_mode = $_GET['editor_mode'];
-			}
+		if ( isset( $_GET['editor_mode'] ) && ! empty( $_GET['editor_mode'] ) ) {
+			$editor_mode = $_GET['editor_mode'];
+		}
 
-			$render_with_bricks    = esc_html__( 'Render with Bricks', 'bricks' );
-			$render_with_wordpress = esc_html__( 'Render with WordPress', 'bricks' );
+		$render_with_bricks    = esc_html__( 'Render with Bricks', 'bricks' );
+		$render_with_wordpress = esc_html__( 'Render with WordPress', 'bricks' );
 
+		$wp_admin_bar->add_menu(
+			[
+				'id'    => 'editor_mode',
+				'title' => $editor_mode === 'wordpress' ? $render_with_wordpress : $render_with_bricks,
+			]
+		);
+
+		if ( $editor_mode === 'wordpress' ) {
 			$wp_admin_bar->add_menu(
 				[
-					'id'    => 'editor_mode',
-					'title' => $editor_mode === 'wordpress' ? $render_with_wordpress : $render_with_bricks,
+					'parent' => 'editor_mode',
+					'id'     => 'editor_mode_bricks',
+					'title'  => $render_with_bricks,
+					'href'   => wp_nonce_url( add_query_arg( 'editor_mode', 'bricks', $edit_post_link ), '_bricks_editor_mode_nonce', '_bricksmode' )
 				]
 			);
-
-			if ( $editor_mode === 'wordpress' ) {
-				$wp_admin_bar->add_menu(
-					[
-						'parent' => 'editor_mode',
-						'id'     => 'editor_mode_bricks',
-						'title'  => $render_with_bricks,
-						'href'   => wp_nonce_url( add_query_arg( 'editor_mode', 'bricks', get_edit_post_link( get_the_ID() ) ), '_bricks_editor_mode_nonce', '_bricksmode' )
-					]
-				);
-			} else {
-				$wp_admin_bar->add_menu(
-					[
-						'parent' => 'editor_mode',
-						'id'     => 'editor_mode_wordpress',
-						'title'  => $render_with_wordpress,
-						'href'   => wp_nonce_url( add_query_arg( 'editor_mode', 'wordpress', get_edit_post_link( get_the_ID() ) ), '_bricks_editor_mode_nonce', '_bricksmode' )
-					]
-				);
-			}
+		} else {
+			$wp_admin_bar->add_menu(
+				[
+					'parent' => 'editor_mode',
+					'id'     => 'editor_mode_wordpress',
+					'title'  => $render_with_wordpress,
+					'href'   => wp_nonce_url( add_query_arg( 'editor_mode', 'wordpress', $edit_post_link ), '_bricks_editor_mode_nonce', '_bricksmode' )
+				]
+			);
 		}
 	}
 
@@ -741,6 +752,26 @@ class Setup {
 			$control_options['backgroundAttachment'] = [
 				'scroll' => esc_html__( 'Scroll', 'bricks' ),
 				'fixed'  => esc_html__( 'Fixed', 'bricks' ),
+			];
+
+			// Used for mix-blend-mode & background-blend-mode (@since 1.9)
+			$control_options['blendMode'] = [
+				'normal'      => 'normal',
+				'multiply'    => 'multiply',
+				'screen'      => 'screen',
+				'overlay'     => 'overlay',
+				'darken'      => 'darken',
+				'lighten'     => 'lighten',
+				'color-dodge' => 'color-dodge',
+				'color-burn'  => 'color-burn',
+				'hard-light'  => 'hard-light',
+				'soft-light'  => 'soft-light',
+				'difference'  => 'difference',
+				'exclusion'   => 'exclusion',
+				'hue'         => 'hue',
+				'saturation'  => 'saturation',
+				'color'       => 'color',
+				'luminosity'  => 'luminosity',
 			];
 
 			$control_options['buttonSizes'] = [
@@ -1045,6 +1076,18 @@ class Setup {
 				'none' => esc_html__( 'None', 'bricks' ),
 				'fade' => esc_html__( 'Fade', 'bricks' ),
 				'zoom' => esc_html__( 'Zoom', 'bricks' ),
+			];
+
+			// AJAX loader animations (@since 1.9)
+			$control_options['ajaxLoaderAnimations'] = [
+				'default'   => esc_html__( 'Default', 'bricks' ),
+				'ellipsis'  => esc_html__( 'Ellipsis', 'bricks' ),
+				'ring'      => esc_html__( 'Ring', 'bricks' ),
+				'dual-ring' => esc_html__( 'Dual ring', 'bricks' ),
+				'facebook'  => esc_html__( 'Facebook', 'bricks' ),
+				'roller'    => esc_html__( 'Roller', 'bricks' ),
+				'ripple'    => esc_html__( 'Ripple', 'bricks' ),
+				'spinner'   => esc_html__( 'Spinner', 'bricks' ),
 			];
 
 			// PERFORMANCE: Run WP query to populate control options only in builder

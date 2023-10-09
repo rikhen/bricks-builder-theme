@@ -571,6 +571,7 @@ class Element_Slider extends Element {
 		$this->controls['prevArrowRight']     = $swiper_controls['prevArrowRight'];
 		$this->controls['prevArrowBottom']    = $swiper_controls['prevArrowBottom'];
 		$this->controls['prevArrowLeft']      = $swiper_controls['prevArrowLeft'];
+		$this->controls['prevArrowTransform'] = $swiper_controls['prevArrowTransform'];
 
 		$this->controls['nextArrowSeparator'] = $swiper_controls['nextArrowSeparator'];
 		$this->controls['nextArrow']          = $swiper_controls['nextArrow'];
@@ -578,6 +579,7 @@ class Element_Slider extends Element {
 		$this->controls['nextArrowRight']     = $swiper_controls['nextArrowRight'];
 		$this->controls['nextArrowBottom']    = $swiper_controls['nextArrowBottom'];
 		$this->controls['nextArrowLeft']      = $swiper_controls['nextArrowLeft'];
+		$this->controls['nextArrowTransform'] = $swiper_controls['nextArrowTransform'];
 
 		// Dots
 

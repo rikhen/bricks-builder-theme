@@ -16,8 +16,9 @@ class Search {
 		if ( ! Database::get_setting( 'publicTemplates', false ) ) {
 			add_action( 'pre_get_posts', [ $this, 'exclude_templates' ] );
 
+			// We shouldn't add this anymore as search query should marked as is_main_archive_query since 1.8.6
 			// Set priority to 9 to run before the WooCommerce query_vars hook (CU #3pxbtcp)
-			add_filter( 'bricks/posts/query_vars', [ $this, 'exclude_templates_bricks_query' ], 9, 3 );
+			// add_filter( 'bricks/posts/query_vars', [ $this, 'exclude_templates_bricks_query' ], 9, 3 );
 		}
 	}
 

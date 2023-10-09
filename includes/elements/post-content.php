@@ -92,21 +92,29 @@ class Element_Post_Content extends Element {
 				// Store the current main render_data self::$elements
 				$store_elements = Frontend::$elements;
 
-				// STEP: Temporary disable lazy load (required in builder when generating frontend data)
-				$disable_lazy_load = isset( Database::$global_settings['disableLazyLoad'] );
+				// STEP: Disable lazy load in builder (required in builder when generating frontend data)
+				$disable_global_lazy_load = isset( Database::$global_settings['disableLazyLoad'] );
+				$disable_page_lazy_load   = isset( Database::$page_settings['disableLazyLoad'] );
 
 				if ( bricks_is_builder_call() ) {
 					Database::$global_settings['disableLazyLoad'] = true;
+					Database::$page_settings['disableLazyLoad']   = true;
 				}
 
 				$output = Frontend::render_data( $bricks_data );
 
 				// STEP: Restore original lazy load setting
 				if ( bricks_is_builder_call() ) {
-					if ( $disable_lazy_load ) {
+					if ( $disable_global_lazy_load ) {
 						Database::$global_settings['disableLazyLoad'] = true;
 					} else {
 						unset( Database::$global_settings['disableLazyLoad'] );
+					}
+
+					if ( $disable_page_lazy_load ) {
+						Database::$page_settings['disableLazyLoad'] = true;
+					} else {
+						unset( Database::$page_settings['disableLazyLoad'] );
 					}
 				}
 

@@ -52,7 +52,7 @@ class Element_Accordion extends Element {
 					'type'  => 'editor',
 				],
 			],
-			'default' => [
+			'default'     => [
 				[
 					'title'    => esc_html__( 'Item', 'bricks' ),
 					'subtitle' => esc_html__( 'I am a so called subtitle.', 'bricks' ),
@@ -508,7 +508,7 @@ class Element_Accordion extends Element {
 
 				$this->set_attribute( "accordion-title-$index", 'class', [ 'title' ] );
 
-				$output .= "<$title_tag {$this->render_attributes( "accordion-title-$index" )}>" . esc_html( $accordion['title'] ) . "</$title_tag>";
+				$output .= "<$title_tag {$this->render_attributes( "accordion-title-$index" )}>" . $this->render_dynamic_data( $accordion['title'] ) . "</$title_tag>";
 
 				if ( $icon_expanded ) {
 					$output .= $icon_expanded;
@@ -524,7 +524,7 @@ class Element_Accordion extends Element {
 			if ( ! empty( $accordion['subtitle'] ) ) {
 				$this->set_attribute( "accordion-subtitle-$index", 'class', [ 'accordion-subtitle' ] );
 
-				$output .= "<div {$this->render_attributes( "accordion-subtitle-$index" )}>" . esc_html( $accordion['subtitle'] ) . '</div>';
+				$output .= "<div {$this->render_attributes( "accordion-subtitle-$index" )}>" . $this->render_dynamic_data( $accordion['subtitle'] ) . '</div>';
 			}
 
 			$output .= '</div>';

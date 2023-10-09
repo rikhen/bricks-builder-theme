@@ -9383,7 +9383,7 @@ msgstr "Desactiveu els camps personalitzats de WordPress al menú desplegable"
 #: ../build/bricks/includes/admin/admin-screen-settings.php:652,
 #: ../includes/admin/admin-screen-settings.php:652
 msgid ""
-"Disable for better in-builder performance. Using dynamic data tags like "
+"Set for better in-builder performance. Using dynamic data tags like "
 "{cf_my_wordpress_field} is still possible."
 msgstr ""
 "Desactiva per obtenir un millor rendiment del constructor. Encara és "

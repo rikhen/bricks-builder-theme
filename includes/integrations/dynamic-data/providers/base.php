@@ -358,8 +358,13 @@ abstract class Base implements Provider_Interface {
 		$object_type = ! empty( $filters['object_type'] ) ? $filters['object_type'] : '';
 		$object      = false;
 
-		// Plain URL for "file" field type, etc. (@since 1.6)
-		if ( ! empty( $filters['url'] ) ) {
+		/**
+		 * Plain URL for "file" field type, etc. (@since 1.6)
+		 *
+		 * Woo Phase 3 - If $filters['url'] use on different tag like {woo_my_account_endpoint}, it will be force went into this condition.
+		 * Check $value is numeric or a post object wp_get_attachment_url accept only numeric value, get_permalink accept numeric or post object
+		 */
+		if ( ! empty( $filters['url'] ) && ( is_numeric( $value ) || is_a( $value, 'WP_Post' ) ) ) {
 			return ( $object_type === 'media' ) ? wp_get_attachment_url( $value ) : get_permalink( $value );
 		}
 
@@ -512,6 +517,7 @@ abstract class Base implements Provider_Interface {
 				'width'           => true,
 				'frameborder'     => true,
 				'allowfullscreen' => true,
+				'title'           => true,
 			];
 		}
 
@@ -562,7 +568,7 @@ abstract class Base implements Provider_Interface {
 	/**
 	 * Returns the value of a specific array key
 	 *
-	 * @param any $value
+	 * @param any   $value
 	 * @param array $filters
 	 *
 	 * @return string
@@ -574,7 +580,7 @@ abstract class Base implements Provider_Interface {
 			return '';
 		}
 
-		$key = $filters['array_value'] ;
+		$key = $filters['array_value'];
 
 		$value = isset( $value[ $key ] ) ? $value[ $key ] : '';
 

@@ -8,13 +8,14 @@ class Element_Text_Link extends Element {
 	public $category = 'basic';
 	public $name     = 'text-link';
 	public $icon     = 'ti-link';
+	public $tag      = 'a';
 
 	public function get_label() {
 		return esc_html__( 'Text link', 'bricks' );
 	}
 
 	public function get_keywords() {
-		return [ 'menu' ];
+		return [ 'menu', 'link' ];
 	}
 
 	public function set_control_groups() {
@@ -164,8 +165,8 @@ class Element_Text_Link extends Element {
 			'type'     => 'number',
 			'units'    => true,
 			'large'    => true,
-			'required' => ['icon', '!=', ''],
-			'css' => [
+			'required' => [ 'icon', '!=', '' ],
+			'css'      => [
 				[
 					'selector' => '',
 					'property' => 'gap',
@@ -176,15 +177,18 @@ class Element_Text_Link extends Element {
 
 	public function render() {
 		$settings = $this->settings;
-		$text     = ! empty( $settings['text'] ) ? $settings['text'] : '';
+		$text     = ! empty( $settings['text'] ) ? $this->render_dynamic_data( $settings['text'] ) : '';
 		$link     = ! empty( $settings['link'] ) ? $settings['link'] : '';
 		$icon     = ! empty( $settings['icon'] ) ? self::render_icon( $settings['icon'] ) : '';
+		$tag      = $this->tag;
 
 		if ( $link ) {
 			$this->set_link_attributes( '_root', $link );
+		} else {
+			$tag = 'span';
 		}
 
-		echo "<a {$this->render_attributes( '_root' )}>";
+		echo "<{$tag} {$this->render_attributes( '_root' )}>";
 
 		if ( $icon ) {
 			echo '<span class="icon">' . $icon . '</span>';
@@ -192,17 +196,17 @@ class Element_Text_Link extends Element {
 			if ( $text ) {
 				echo '<span class="text">' . $text . '</span>';
 			}
-		} else if ( $text ) {
+		} elseif ( $text ) {
 			echo $text;
 		}
 
-		echo '</a>';
+		echo "</{$tag}>";
 	}
 
 	public static function _render_builder() { ?>
 		<script type="text/x-template" id="tmpl-bricks-element-text-link">
 			<contenteditable
-				tag="a"
+				:tag="{settings.link ? 'a': 'span'}"
 				:name="name"
 				controlKey="text"
 				toolbar="style align link"
@@ -211,22 +215,4 @@ class Element_Text_Link extends Element {
 		</script>
 		<?php
 	}
-
-	// TODO
-	// public function convert_element_settings_to_block( $settings ) {
-	// if ( empty( $settings['text'] ) ) {
-	// return;
-	// }
-
-	// $block = [
-	// 'blockName'    => $this->block,
-	// 'attrs'        => [],
-	// 'innerContent' => [ trim( $settings['text'] ) ],
-	// ];
-
-	// return $block;
-	// }
-
-	// NOTE: Convert block to element settings: Use Bricks "Rich Text" element instead
-	// public function convert_block_to_element_settings( $block, $attributes ) {}
 }

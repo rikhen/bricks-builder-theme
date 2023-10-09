@@ -18,6 +18,8 @@ $link_css_selectors = [
 
 	':where(.brxe-text-basic) a',
 	':where(a.brxe-text-basic)',
+
+	':where(.brxe-post-comments) .comment-content a',
 ];
 
 // https://academy.bricksbuilder.io/article/filter-bricks-link_css_selectors/

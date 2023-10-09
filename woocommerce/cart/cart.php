@@ -23,7 +23,7 @@ defined( 'ABSPATH' ) || exit;
  * @since 1.7
  */
 // Get template ID (@since 1.8)
-$cart_template_id         =  Bricks\Woocommerce::get_template_data_by_type( 'wc_cart', false );
+$cart_template_id = Bricks\Woocommerce::get_template_data_by_type( 'wc_cart', false );
 
 if ( ! Bricks\Woocommerce::use_bricks_woo_notice_element() ) {
 	$cart_template_elements   = $cart_template_id ? get_post_meta( $cart_template_id, BRICKS_DB_PAGE_CONTENT, true ) : false;

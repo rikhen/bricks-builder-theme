@@ -174,9 +174,9 @@ class Provider_Metabox extends Base {
 	}
 
 	public function get_tag_value( $tag, $post, $args, $context ) {
-		$post_id = isset( $post->ID ) ? $post->ID : '';
-
-		$field = $this->tags[ $tag ]['field'];
+		$post_id    = isset( $post->ID ) ? $post->ID : '';
+		$tag_object = $this->tags[ $tag ];
+		$field      = $this->tags[ $tag ]['field'];
 
 		// STEP: Check for filter args
 		$filters = $this->get_filters_from_args( $args );
@@ -188,7 +188,7 @@ class Provider_Metabox extends Base {
 		if ( isset( $filters['array_value'] ) && is_array( $value ) ) {
 			// Force context to text
 			$context = 'text';
-			$value = $this->return_array_value( $value, $filters );
+			$value   = $this->return_array_value( $value, $filters );
 		}
 
 		// Process field type logic
@@ -366,18 +366,69 @@ class Provider_Metabox extends Base {
 				case 'date':
 				case 'time':
 				case 'datetime':
-					$value = empty( $field['clone'] ) ? [ $value ] : $value;
+					// NOTE: Rework the logic to support dynamic date filters @since 1.9
 
-					if ( ! empty( $field['timestamp'] ) ) {
-						$format = get_option( 'date_format' );
+					// Make sure the $value is not empty
+					if ( ! empty( $value ) ) {
+						// STEP: Force $value to be an array
+						$value = empty( $field['clone'] ) ? [ $value ] : $value;
 
-						if ( $field['type'] == 'datetime' ) {
-							$format .= ' ' . get_option( 'time_format' );
+						// STEP: Get the date format so that we can use it to create a DateTime object
+						// Default date time format in metabox
+						$date_format = 'Y-m-d';
+						$time_format = 'H:i';
+
+						switch ( $field['type'] ) {
+							case 'date':
+								$format = $date_format;
+								break;
+							case 'datetime':
+								$format = $date_format . ' ' . $time_format;
+								break;
+							case 'time':
+								$format = $time_format;
+								break;
 						}
-					}
 
-					foreach ( $value as $key => $row ) {
-						$value[ $key ] = ! empty( $field['timestamp'] ) ? date_i18n( $format, $row ) : $row;
+						$use_timestamp      = ! empty( $field['timestamp'] );
+						$is_group_sub_field = isset( $tag_object['parent']['id'] );
+
+						// NOTE: Overwrite the format if not using timestamp and save_format is set (Metabox not follow save_format if it's a group subfield)
+						if ( ! $use_timestamp && ! $is_group_sub_field && ! empty( $field['save_format'] ) ) {
+							$format = $field['save_format'];
+						}
+
+						$utc_value = [];
+						// STEP: Try convert the $value to DateTime object in UTC and save it to $utc_value
+						foreach ( $value as $key => $row ) {
+							// If this is a group sub-field and saved as timestamp, the $row is an array, pick the timestamp value
+							$date_value = $use_timestamp && is_array( $row ) && isset( $row['timestamp'] ) ? $row['timestamp'] : $row;
+
+							$date_value = $use_timestamp ? date_i18n( $format, $date_value ) : $date_value;
+
+							// Replace original $value with $date_value as well for backward compatibility (in case the createFromFormat() failed)
+							$value[ $key ] = $date_value;
+
+							$date = \DateTime::createFromFormat( $format, $date_value );
+							// Skip if the conversion failed
+							if ( ! $date instanceof \DateTime ) {
+								continue;
+							}
+
+							// Store converted DateTime in UTC
+							$utc_value[ $key ] = $date->format( 'U' );
+						}
+
+						/**
+						 * STEP: Set the object_type and meta_key so format_value_for_context() can handle it
+						 *
+						 * Only execute this if $utc_value is not empty and $utc_value will be used in the next step.
+						 */
+						if ( ! empty( $utc_value ) ) {
+							$filters['meta_key']    = ! empty( $filters['meta_key'] ) ? $filters['meta_key'] : $format;
+							$filters['object_type'] = $field['type'] == 'date' ? 'date' : 'datetime';
+							$value                  = $utc_value;
+						}
 					}
 					break;
 

@@ -133,6 +133,29 @@ class Element_Slider_Nested extends Element {
 			'fullAccess'  => true,
 		];
 
+		/**
+		 * NOTE: Natively not supported for horizontal slides
+		 *
+		 * Added custom solution to calculate height: https://github.com/Splidejs/splide/issues/227#issuecomment-997330823
+		 *
+		 * @since 1.9.1
+		 */
+		$this->controls['autoHeight'] = [
+			'group'      => 'options',
+			'label'      => esc_html__( 'Auto height', 'bricks' ),
+			'type'       => 'checkbox',
+			'inline'     => true,
+			'required'   => [ 'optionsType', '!=', 'custom' ],
+			'fullAccess' => true,
+		];
+
+		$this->controls['autoHeightInfo'] = [
+			'group'    => 'options',
+			'content'  => esc_html__( 'Using "Auto height" might lead to CLS (Cumulative Layout Shift).', 'bricks' ),
+			'type'     => 'info',
+			'required' => [ 'autoHeight', '=', true ],
+		];
+
 		$this->controls['height'] = [
 			'group'       => 'options',
 			'label'       => esc_html__( 'Height', 'bricks' ),
@@ -140,7 +163,10 @@ class Element_Slider_Nested extends Element {
 			'units'       => true,
 			'placeholder' => '50vh',
 			'breakpoints' => true,
-			'required'    => [ 'optionsType', '!=', 'custom' ],
+			'required'    => [
+				[ 'optionsType', '!=', 'custom' ],
+				[ 'autoHeight', '=', '' ],
+			],
 			'fullAccess'  => true,
 		];
 
@@ -170,7 +196,6 @@ class Element_Slider_Nested extends Element {
 			'type'        => 'number',
 			'placeholder' => 1,
 			'breakpoints' => true,
-			'breakpoints' => true,
 			'required'    => [
 				[ 'optionsType', '!=', 'custom' ],
 				[ 'type', '!=', 'fade' ],
@@ -183,7 +208,6 @@ class Element_Slider_Nested extends Element {
 			'label'       => esc_html__( 'Items to scroll', 'bricks' ),
 			'type'        => 'number',
 			'placeholder' => 1,
-			'breakpoints' => true,
 			'breakpoints' => true,
 			'required'    => [
 				[ 'optionsType', '!=', 'custom' ],
@@ -200,15 +224,6 @@ class Element_Slider_Nested extends Element {
 			'breakpoints' => true,
 			'required'    => [ 'optionsType', '!=', 'custom' ],
 			'fullAccess'  => true,
-		];
-
-		$this->controls['autoHeight'] = [
-			'group'      => 'options',
-			'label'      => esc_html__( 'Auto height', 'bricks' ),
-			'type'       => 'checkbox',
-			'inline'     => true,
-			'required'   => [ 'optionsType', '!=', 'custom' ],
-			'fullAccess' => true,
 		];
 
 		// AUTOPLAY
@@ -233,9 +248,11 @@ class Element_Slider_Nested extends Element {
 			'group'      => 'options',
 			'label'      => esc_html__( 'Pause on hover', 'bricks' ),
 			'type'       => 'checkbox',
-			'required'   => [ 'autoplay', '!=', '' ],
 			'inline'     => true,
-			'required'   => [ 'optionsType', '!=', 'custom' ],
+			'required'   => [
+				[ 'optionsType', '!=', 'custom' ],
+				[ 'autoplay', '!=', '' ],
+			],
 			'fullAccess' => true,
 		];
 
@@ -243,9 +260,11 @@ class Element_Slider_Nested extends Element {
 			'group'      => 'options',
 			'label'      => esc_html__( 'Pause on focus', 'bricks' ),
 			'type'       => 'checkbox',
-			'required'   => [ 'autoplay', '!=', '' ],
 			'inline'     => true,
-			'required'   => [ 'optionsType', '!=', 'custom' ],
+			'required'   => [
+				[ 'optionsType', '!=', 'custom' ],
+				[ 'autoplay', '!=', '' ],
+			],
 			'fullAccess' => true,
 		];
 
@@ -253,9 +272,11 @@ class Element_Slider_Nested extends Element {
 			'group'       => 'options',
 			'label'       => esc_html__( 'Interval in ms', 'bricks' ),
 			'type'        => 'number',
-			'required'    => [ 'autoplay', '!=', '' ],
 			'placeholder' => 3000,
-			'required'    => [ 'optionsType', '!=', 'custom' ],
+			'required'    => [
+				[ 'optionsType', '!=', 'custom' ],
+				[ 'autoplay', '!=', '' ],
+			],
 			'fullAccess'  => true,
 		];
 
@@ -353,10 +374,10 @@ class Element_Slider_Nested extends Element {
 		];
 
 		$this->controls['slideBackground'] = [
-			'group' => 'slide',
-			'label' => esc_html__( 'Background', 'bricks' ),
-			'type'  => 'background',
-			'css'   => [
+			'group'   => 'slide',
+			'label'   => esc_html__( 'Background', 'bricks' ),
+			'type'    => 'background',
+			'css'     => [
 				[
 					'property' => 'background',
 					'selector' => '.splide__slide',
@@ -379,15 +400,15 @@ class Element_Slider_Nested extends Element {
 
 		// NOTE: Not in use as slider has overflow: hidden
 		// $this->controls['slideBoxShadow'] = [
-		// 	'group' => 'slide',
-		// 	'label' => esc_html__( 'Box shadow', 'bricks' ),
-		// 	'type'  => 'box-shadow',
-		// 	'css'   => [
-		// 		[
-		// 			'property' => 'box-shadow',
-		// 			'selector' => '.splide__slide',
-		// 		],
-		// 	],
+		// 'group' => 'slide',
+		// 'label' => esc_html__( 'Box shadow', 'bricks' ),
+		// 'type'  => 'box-shadow',
+		// 'css'   => [
+		// [
+		// 'property' => 'box-shadow',
+		// 'selector' => '.splide__slide',
+		// ],
+		// ],
 		// ];
 
 		// Arrows
@@ -547,15 +568,7 @@ class Element_Slider_Nested extends Element {
 			],
 		];
 
-		/**
-		 * DISABELED ARROW
-		 *
-		 * First/last arrow when not using 'loop' option.
-		 *
-		 * @since 1.8.5
-		 */
-
-		$this->controls['disabledArrowSeparator'] = [
+		$this->controls['disabledArrowSep'] = [
 			'group'    => 'arrows',
 			'label'    => esc_html__( 'Disabled', 'bricks' ),
 			'type'     => 'separator',
@@ -586,6 +599,7 @@ class Element_Slider_Nested extends Element {
 				],
 			],
 			'required' => [ 'arrows', '!=', '' ],
+
 		];
 
 		$this->controls['arrowDisabledColor'] = [
@@ -701,6 +715,30 @@ class Element_Slider_Nested extends Element {
 			'required' => [ 'arrows', '!=', '' ],
 		];
 
+		$this->controls['prevArrowTransform'] = [
+			'group'    => 'arrows',
+			'label'    => esc_html__( 'Transform', 'bricks' ),
+			'type'     => 'transform',
+			'css'      => [
+				[
+					'property' => 'transform',
+					'selector' => '.splide__arrow--prev',
+				],
+			],
+			'required' => [ 'arrows', '!=', '' ],
+		];
+
+		$this->controls['prevArrowTransformInfo'] = [
+			'group'    => 'arrows',
+			'content'  => esc_html__( 'Please make sure to set the "Scale X" value inside the transform setting above to "-1".', 'bricks' ),
+			'type'     => 'info',
+			'required' => [
+				[ 'arrows', '!=', '' ],
+				[ 'prevArrow', '=', '' ],
+				[ 'prevArrowTransform', '!=', '' ],
+			],
+		];
+
 		// NEXT ARROW
 
 		$this->controls['nextArrowSeparator'] = [
@@ -774,6 +812,19 @@ class Element_Slider_Nested extends Element {
 			'css'      => [
 				[
 					'property' => 'left',
+					'selector' => '.splide__arrow--next',
+				],
+			],
+			'required' => [ 'arrows', '!=', '' ],
+		];
+
+		$this->controls['nextArrowTransform'] = [
+			'group'    => 'arrows',
+			'label'    => esc_html__( 'Transform', 'bricks' ),
+			'type'     => 'transform',
+			'css'      => [
+				[
+					'property' => 'transform',
 					'selector' => '.splide__arrow--next',
 				],
 			],
@@ -1112,9 +1163,16 @@ class Element_Slider_Nested extends Element {
 	 * Render individual slides
 	 */
 	public function render() {
-		$this->set_attribute( '_root', 'class', 'splide' );
-
 		$settings = $this->settings;
+
+		$splide_class = [ 'splide' ];
+
+		// To allpy required CSS when using autoHeight (@since 1.9.1)
+		if ( ! empty( $settings['autoHeight'] ) ) {
+			$splide_class[] = 'brx-auto-height';
+		}
+
+		$this->set_attribute( '_root', 'class', $splide_class );
 
 		/**
 		 * splideJS (replaces swiperJS)
@@ -1169,6 +1227,11 @@ class Element_Slider_Nested extends Element {
 			'arrows'       => $arrows,
 			'pagination'   => isset( $settings['pagination'] ),
 		];
+
+		// Auto height enabled: Set height to "auto"
+		if ( isset( $settings['autoHeight'] ) ) {
+			$splide_options['height'] = 'auto';
+		}
 
 		if ( isset( $settings['rewind'] ) && $type !== 'loop' ) {
 			$splide_options['rewind'] = $settings['rewind'];

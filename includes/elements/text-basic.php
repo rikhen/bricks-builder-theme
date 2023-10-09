@@ -61,6 +61,9 @@ class Element_Text_Basic extends Element {
 
 		$content = isset( $settings['text'] ) ? $settings['text'] : '';
 
+		// Set $no_root to true if content contains {do_action:...} (@since 1.9.1, @see #2yddfub)
+		$no_root = $content ? preg_match( '/{do_action:/', $content ) : false;
+
 		// Resolve some {do_action} not fully working in certain cases (@see #862je3dz8)
 		$content = $this->render_dynamic_data( $content );
 
@@ -70,7 +73,11 @@ class Element_Text_Basic extends Element {
 			$this->tag = 'a';
 		}
 
-		echo "<{$this->tag} {$this->render_attributes( '_root' )}>{$content}</{$this->tag}>";
+		if ( $no_root && ! bricks_is_builder() && ! bricks_is_builder_call() ) {
+			echo $content;
+		} else {
+			echo "<{$this->tag} {$this->render_attributes( '_root' )}>{$content}</{$this->tag}>";
+		}
 	}
 
 	public static function render_builder() { ?>

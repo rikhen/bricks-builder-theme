@@ -654,7 +654,7 @@ $export_global_settings_url = wp_nonce_url( admin_url( 'admin-ajax.php?action=br
 
 						<input type="checkbox" name="builderDisableWpCustomFields" id="builderDisableWpCustomFields" <?php checked( isset( $settings['builderDisableWpCustomFields'] ) ); ?>>
 						<label for="builderDisableWpCustomFields"><?php esc_html_e( 'Disable WordPress custom fields in dropdown', 'bricks' ); ?></label>
-						<p class="description"><?php esc_html_e( 'Disable for better in-builder performance. Using dynamic data tags like {cf_my_wordpress_field} is still possible.', 'bricks' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Set for better in-builder performance. Using dynamic data tags like {cf_my_wordpress_field} is still possible.', 'bricks' ); ?></p>
 
 						<div class="separator"></div>
 
@@ -826,7 +826,7 @@ $export_global_settings_url = wp_nonce_url( admin_url( 'admin-ajax.php?action=br
 
 								if ( $css_files_last_generated_timestamp ) {
 									// Timestamp to humn-readable date
-									$human_time_diff = human_time_diff( $css_files_last_generated_timestamp, time() );
+									$human_time_diff               = human_time_diff( $css_files_last_generated_timestamp, time() );
 									$css_files_last_generated_date = date( 'Y-m-d H:i:s', $css_files_last_generated_timestamp );
 
 									echo "<p class=\"description\" title=\"$css_files_last_generated_date\">" . esc_html__( 'Last generated', 'bricks' ) . ': ' . sprintf( esc_html__( '%s ago', 'bricks' ), $human_time_diff ) . ' (Bricks ' . $css_files_last_generated_version . ')</p>';
@@ -1020,7 +1020,7 @@ $export_global_settings_url = wp_nonce_url( admin_url( 'admin-ajax.php?action=br
 					<th><label for="apiKeySendgrid"><?php esc_html_e( 'Sendgrid API key', 'bricks' ); ?></label></th>
 					<td>
 						<input type="text" name="apiKeySendgrid" id="apiKeySendgrid" value="<?php echo encipher_api_key( $settings, 'apiKeySendgrid' ); ?>" spellcheck="false">
-						<p class="description"><?php echo esc_html( 'Save settings to sync lists.', 'bricks' ) . ' <a href="https://sendgrid.com/docs/ui/account-and-settings/api-keys/#creating-an-api-key" target="_blank" rel="noopener">' . esc_html__( 'How to get your SenGrid API key', 'bricks' ) . '</a>'; ?></p>
+						<p class="description"><?php echo esc_html( 'Save settings to sync lists.', 'bricks' ) . ' <a href="https://sendgrid.com/docs/ui/account-and-settings/api-keys/#creating-an-api-key" target="_blank" rel="noopener">' . esc_html__( 'How to get your SendGrid API key', 'bricks' ) . '</a>'; ?></p>
 					</td>
 				</tr>
 
@@ -1029,6 +1029,14 @@ $export_global_settings_url = wp_nonce_url( admin_url( 'admin-ajax.php?action=br
 					<td>
 						<input type="text" name="facebookAppId" id="facebookAppId" value="<?php echo encipher_api_key( $settings, 'facebookAppId' ); ?>" spellcheck="false">
 						<p class="description"><?php echo '<a href="https://developers.facebook.com/docs/apps#register" target="_blank" rel="noopener">' . esc_html__( 'How to get your Facebook App ID', 'bricks' ) . '</a>'; ?></p>
+					</td>
+				</tr>
+
+				<tr>
+					<th><label for="instagramAccessToken"><?php esc_html_e( 'Instagram Access Token', 'bricks' ); ?></label></th>
+					<td>
+						<input type="text" name="instagramAccessToken" id="instagramAccessToken" value="<?php echo encipher_api_key( $settings, 'instagramAccessToken' ); ?>" spellcheck="false">
+						<p class="description"><?php echo '<a href="#" target="_blank" rel="noopener">' . esc_html__( 'How to get your Instagram Access Token', 'bricks' ) . '</a>'; ?></p>
 					</td>
 				</tr>
 			</tbody>
@@ -1101,6 +1109,13 @@ $export_global_settings_url = wp_nonce_url( admin_url( 'admin-ajax.php?action=br
 								<p class="description"><?php esc_html_e( 'You have to add the "Notice" element yourself wherever necessary as all native WooCommerce notices are removed when this setting is enabled.', 'bricks' ); ?></p>
 							</div>
 						</section>
+						<section>
+							<div class="setting-wrapper">
+								<input type="checkbox" name="woocommerceUseQtyInLoop" id="woocommerceUseQtyInLoop" <?php checked( isset( $settings['woocommerceUseQtyInLoop'] ) ); ?>>
+								<label for="woocommerceUseQtyInLoop"><?php esc_html_e( 'Show quantity input field in product loop', 'bricks' ); ?></label>
+								<p class="description"><?php esc_html_e( 'Only applicable for purchasable simple products with in stock status.', 'bricks' ); ?></p>
+							</div>
+						</section>
 					</td>
 				</tr>
 
@@ -1128,7 +1143,7 @@ $export_global_settings_url = wp_nonce_url( admin_url( 'admin-ajax.php?action=br
 
 				<tr>
 					<th>
-						<label for="woocommerceBadgeSale"><?php esc_html_e( 'Single product', 'bricks' ); ?></label>
+						<label for="woocommerceSingleProduct"><?php esc_html_e( 'Single product', 'bricks' ); ?></label>
 					</th>
 					<td>
 						<section>
@@ -1144,13 +1159,62 @@ $export_global_settings_url = wp_nonce_url( admin_url( 'admin-ajax.php?action=br
 								<label for="woocommerceDisableProductGalleryLightbox"><?php esc_html_e( 'Disable product gallery lightbox', 'bricks' ); ?></label>
 							</div>
 						</section>
+					</td>
+				</tr>
 
+				<?php
+					$woo_ajax_adding_text      = ! empty( $settings['woocommerceAjaxAddingText'] ) ? $settings['woocommerceAjaxAddingText'] : '';
+					$woo_ajax_added_text       = ! empty( $settings['woocommerceAjaxAddedText'] ) ? $settings['woocommerceAjaxAddedText'] : '';
+					$woo_ajax_reset_text_after = ! empty( $settings['woocommerceAjaxResetTextAfter'] ) ? $settings['woocommerceAjaxResetTextAfter'] : '';
+				?>
+				<tr>
+					<th>
+						<label for="woocommerceAJAXAddToCart"><?php esc_html_e( 'AJAX add to cart', 'bricks' ); ?></label>
+					</th>
+					<td>
 						<section>
 							<div class="setting-wrapper">
 								<input type="checkbox" name="woocommerceEnableAjaxAddToCart" id="woocommerceEnableAjaxAddToCart" <?php checked( isset( $settings['woocommerceEnableAjaxAddToCart'] ) ); ?>>
 								<label for="woocommerceEnableAjaxAddToCart"><?php esc_html_e( 'Enable AJAX add to cart', 'bricks' ); ?></label>
-								<p class="description"><?php esc_html__( 'Make sure ticked "Enable AJAX add to cart buttons on archives" in WooCommerce > Settings > Products', 'bricks' ); ?>
+								<p class="description"><?php esc_html_e( 'This will overwrite the native WooCommerce AJAX add to cart feature on archives as well. Please note that only simple products within the product loop will be able to utilize the AJAX add to cart functionality.' ); ?>
 								</p>
+								<p class="description"><?php esc_html_e( 'Make sure ticked "Enable AJAX add to cart buttons on archives" in WooCommerce > Settings > Products', 'bricks' ); ?>
+							</div>
+						</section>
+
+						<section>
+							<div class="title"><?php esc_html_e( 'Adding', 'bricks' ); ?></div>
+							<div class="setting-wrapper">
+								<label for="woocommerceAjaxAddingText" class="large"><?php esc_html_e( 'Button text', 'bricks' ); ?></label>
+								<input type="text" name="woocommerceAjaxAddingText" id="woocommerceAjaxAddingText" class="small" value="<?php echo $woo_ajax_adding_text; ?>" placeholder="<?php esc_html_e( 'Adding', 'bricks' ); ?>">
+							</div>
+						</section>
+
+						<section>
+							<div class="title"><?php esc_html_e( 'Added', 'bricks' ); ?></div>
+							<div class="setting-wrapper">
+								<label for="woocommerceAjaxAddedText" class="large"><?php esc_html_e( 'Button text', 'bricks' ); ?></label>
+								<input type="text" name="woocommerceAjaxAddedText" id="woocommerceAjaxAddedText" class="small" value="<?php echo $woo_ajax_added_text; ?>" placeholder="<?php esc_html_e( 'Added', 'bricks' ); ?>">
+							</div>
+
+							<div class="setting-wrapper">
+								<label for="woocommerceAjaxResetTextAfter" class="large"><?php esc_html_e( 'Reset text after .. seconds', 'bricks' ); ?></label>
+								<input type="number" name="woocommerceAjaxResetTextAfter" id="woocommerceAjaxResetTextAfter" class="small" value="<?php echo $woo_ajax_reset_text_after; ?>" placeholder="3" min="1">
+							</div>
+
+							<div class="setting-wrapper">
+								<input type="checkbox" name="woocommerceAjaxHideViewCart" id="woocommerceAjaxHideViewCart" <?php checked( isset( $settings['woocommerceAjaxHideViewCart'] ) ); ?>>
+								<label for="woocommerceAjaxHideViewCart"><?php esc_html_e( 'Hide "View cart" button', 'bricks' ); ?></label>
+							</div>
+
+							<div class="setting-wrapper">
+								<input type="checkbox" name="woocommerceAjaxShowNotice" id="woocommerceAjaxShowNotice" <?php checked( isset( $settings['woocommerceAjaxShowNotice'] ) ); ?>>
+								<label for="woocommerceAjaxShowNotice"><?php esc_html_e( 'Show notice', 'bricks' ); ?></label>
+							</div>
+
+							<div class="setting-wrapper">
+								<input type="checkbox" name="woocommerceAjaxScrollToNotice" id="woocommerceAjaxScrollToNotice" <?php checked( isset( $settings['woocommerceAjaxScrollToNotice'] ) ); ?>>
+								<label for="woocommerceAjaxScrollToNotice"><?php esc_html_e( 'Scroll to notice', 'bricks' ); ?></label>
 							</div>
 						</section>
 					</td>

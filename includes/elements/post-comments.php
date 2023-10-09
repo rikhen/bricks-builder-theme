@@ -54,11 +54,11 @@ class Element_Post_Comments extends Element {
 	public function set_controls() {
 		// Choose between Bricks and WordPress comments (@since 1.8)
 		$this->controls['source'] = [
-			'tab'     => 'content',
-			'label'   => esc_html__( 'Source', 'bricks' ),
-			'type'    => 'select',
-			'inline'  => true,
-			'options' => [
+			'tab'         => 'content',
+			'label'       => esc_html__( 'Source', 'bricks' ),
+			'type'        => 'select',
+			'inline'      => true,
+			'options'     => [
 				'bricks'    => 'Bricks',
 				'wordpress' => 'WordPress',
 			],
@@ -214,11 +214,11 @@ class Element_Post_Comments extends Element {
 		];
 
 		$this->controls['labelTypography'] = [
-			'tab'   => 'content',
-			'group' => 'form',
-			'label' => esc_html__( 'Label', 'bricks' ) . ': ' . esc_html__( 'Typography', 'bricks' ),
-			'type'  => 'typography',
-			'css'   => [
+			'tab'      => 'content',
+			'group'    => 'form',
+			'label'    => esc_html__( 'Label', 'bricks' ) . ': ' . esc_html__( 'Typography', 'bricks' ),
+			'type'     => 'typography',
+			'css'      => [
 				[
 					'property' => 'font',
 					'selector' => 'label',
@@ -251,16 +251,16 @@ class Element_Post_Comments extends Element {
 		];
 
 		$this->controls['cookies'] = [
-			'tab'     => 'content',
-			'group'   => 'form',
-			'label'   => esc_html__( 'Cookie consent', 'bricks' ) . ': ' . esc_html__( 'Show', 'bricks' ),
-			'type'    => 'checkbox',
+			'tab'   => 'content',
+			'group' => 'form',
+			'label' => esc_html__( 'Cookie consent', 'bricks' ) . ': ' . esc_html__( 'Show', 'bricks' ),
+			'type'  => 'checkbox',
 		];
 
 		$this->controls['cookiesRequired'] = [
 			'tab'      => 'content',
 			'group'    => 'form',
-			'label'   => esc_html__( 'Cookie consent', 'bricks' ) . ': ' . esc_html__( 'Required', 'bricks' ),
+			'label'    => esc_html__( 'Cookie consent', 'bricks' ) . ': ' . esc_html__( 'Required', 'bricks' ),
 			'type'     => 'checkbox',
 			'required' => [ 'cookies', '!=', '' ],
 		];
@@ -268,7 +268,7 @@ class Element_Post_Comments extends Element {
 		$this->controls['cookiesText'] = [
 			'tab'      => 'content',
 			'group'    => 'form',
-			'label'   => esc_html__( 'Cookie consent', 'bricks' ) . ': ' . esc_html__( 'Text', 'bricks' ),
+			'label'    => esc_html__( 'Cookie consent', 'bricks' ) . ': ' . esc_html__( 'Text', 'bricks' ),
 			'type'     => 'text',
 			'required' => [ 'cookies', '!=', '' ],
 		];
@@ -462,7 +462,7 @@ class Element_Post_Comments extends Element {
 					$comments = get_comments(
 						[
 							'post_id' => get_the_ID(),
-							'status'  => 'approve',
+							'status'  => [ 'approve', 'hold' ],
 						]
 					);
 

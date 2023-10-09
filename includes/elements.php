@@ -77,6 +77,7 @@ class Elements {
 			'slider',
 			'slider-nested', // @since 1.5
 			'svg',
+			'instagram-feed',
 
 			// WordPress
 			'wordpress',
@@ -98,6 +99,7 @@ class Elements {
 			'post-comments',
 			'post-taxonomy',
 			'post-navigation',
+
 			'post-reading-time',
 			'post-reading-progress-bar',
 			'post-toc',

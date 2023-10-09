@@ -380,12 +380,12 @@ abstract class Element {
 		 * Avoid horizontal scrollbar when setting 'width' instead of 'max-width'.
 		 */
 		$this->controls['_widthMax'] = [
-			'tab'         => 'style',
-			'group'       => '_layout',
-			'label'       => esc_html__( 'Max. width', 'bricks' ),
-			'type'        => 'number',
-			'units'       => true,
-			'css'         => [
+			'tab'   => 'style',
+			'group' => '_layout',
+			'label' => esc_html__( 'Max. width', 'bricks' ),
+			'type'  => 'number',
+			'units' => true,
+			'css'   => [
 				[
 					'property' => 'max-width',
 					'selector' => '',
@@ -430,6 +430,23 @@ abstract class Element {
 			'css'   => [
 				[
 					'property' => 'max-height',
+				],
+			],
+		];
+
+		// aspect-ratio control (@since 1.9)
+		$this->controls['_aspectRatio'] = [
+			'tab'         => 'style',
+			'group'       => '_layout',
+			'label'       => esc_html__( 'Aspect ratio', 'bricks' ),
+			'type'        => 'text',
+			'inline'      => true,
+			'small'       => true,
+			'dd'          => false,
+			'placeholder' => '',
+			'css'         => [
+				[
+					'property' => 'aspect-ratio',
 				],
 			],
 		];
@@ -641,13 +658,13 @@ abstract class Element {
 			'step'        => '.01',
 			'min'         => '0',
 			'max'         => '1',
+			'large'       => true,
+			'placeholder' => 1,
 			'css'         => [
 				[
 					'property' => 'opacity',
 				]
 			],
-			'small'       => false,
-			'placeholder' => 1,
 		];
 
 		$this->controls['_cursor'] = [
@@ -712,6 +729,53 @@ abstract class Element {
 			],
 			'inline'      => true,
 			'placeholder' => 'auto',
+		];
+
+		// isolation select control (@since 1.9)
+		$this->controls['_isolation'] = [
+			'tab'     => 'style',
+			'group'   => '_layout',
+			'label'   => esc_html__( 'Isolation', 'bricks' ),
+			'type'    => 'select',
+			'inline'  => true,
+			'options' => [
+				'auto'    => 'auto',
+				'isolate' => 'isolate',
+			],
+			'css'     => [
+				[
+					'property' => 'isolation',
+				]
+			],
+		];
+
+		// mix-blend-mode control (@since 1.9)
+		$this->controls['_mixBlendMode'] = [
+			'tab'     => 'style',
+			'group'   => '_layout',
+			'label'   => 'Mix blend mode', // Don't localize
+			'type'    => 'select',
+			'inline'  => true,
+			'options' => Setup::$control_options['blendMode'],
+			'css'     => [
+				[
+					'property' => 'mix-blend-mode',
+				]
+			],
+		];
+
+		$this->controls['_pointerEvents'] = [
+			'tab'    => 'style',
+			'group'  => '_layout',
+			'label'  => 'Pointer events', // Don't localize
+			'type'   => 'text',
+			'inline' => true,
+			'dd'     => false,
+			'css'    => [
+				[
+					'property' => 'pointer-events',
+				]
+			],
 		];
 
 		// Flex controls (for non-layout elements: no section, container, div)
@@ -950,12 +1014,12 @@ abstract class Element {
 						'placeholder' => esc_html__( 'Select shape', 'bricks' ),
 					],
 
-					'shapeCustom' => [
+					'shapeCustom'     => [
 						'label'       => esc_html__( 'Custom shape', 'bricks' ) . ' (SVG)',
 						'type'        => 'svg',
 						'description' => sprintf(
 							esc_html__( 'If the shape doesn\'t take up all available space add %s to the "svg" tag.', 'bricks' ),
-							'<a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/preserveAspectRatio" target="_blank">preserveAspectRatio="none"</a>',
+							'<a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/preserveAspectRatio" target="_blank">preserveAspectRatio="none"</a>'
 						),
 						'required'    => [ 'shape', '=', 'custom' ],
 					],
@@ -1126,7 +1190,10 @@ abstract class Element {
 			],
 			'inline'      => true,
 			'small'       => true,
-			'description' => sprintf( '<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/transform" target="_blank" rel="noopener">%s</a>', esc_html__( 'Learn more about CSS transform', 'bricks' ) ),
+			'description' => sprintf(
+				'<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/transform" target="_blank" rel="noopener">%s</a>',
+				esc_html__( 'Learn more about CSS transform', 'bricks' )
+			),
 		];
 
 		$this->controls['_transformOrigin'] = [
@@ -1141,7 +1208,10 @@ abstract class Element {
 			],
 			'inline'         => true,
 			'hasDynamicData' => false,
-			'description'    => sprintf( '<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/transform-origin" target="_blank" rel="noopener">%s</a>', esc_html__( 'Learn more about CSS transform-origin', 'bricks' ) ),
+			'description'    => sprintf(
+				'<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/transform-origin" target="_blank" rel="noopener">%s</a>',
+				esc_html__( 'Learn more about CSS transform-origin', 'bricks' )
+			),
 			'placeholder'    => 'center',
 		];
 
@@ -1158,10 +1228,12 @@ abstract class Element {
 			'css'           => [
 				[
 					'property' => 'filter',
-					// 'selector' => '.css-filter', // @since 1.5 (apply to element root to work on every element)
 				],
 			],
-			'description'   => sprintf( '<a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/CSS/filter#Syntax">%s</a>', esc_html__( 'Learn more about CSS filters', 'bricks' ) ),
+			'description'   => sprintf(
+				'<a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/CSS/filter#Syntax">%s</a>',
+				esc_html__( 'Learn more about CSS filters', 'bricks' )
+			),
 		];
 
 		$this->controls['_cssTransition'] = [
@@ -1177,7 +1249,10 @@ abstract class Element {
 			],
 			'type'           => 'text',
 			'hasDynamicData' => false,
-			'description'    => sprintf( '<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Transitions/Using_CSS_transitions" target="_blank">%s</a>', esc_html__( 'Learn more about CSS transitions', 'bricks' ) ),
+			'description'    => sprintf(
+				'<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Transitions/Using_CSS_transitions" target="_blank">%s</a>',
+				esc_html__( 'Learn more about CSS transitions', 'bricks' )
+			),
 		];
 
 		$this->controls['_cssCustom'] = [
@@ -1187,7 +1262,8 @@ abstract class Element {
 			'type'        => 'code',
 			'pasteStyles' => true,
 			'css'         => [], // NOTE: Undocumented (@since 1.5.1) return true instead of array with 'property' and 'selector' data to output as plain CSS
-			'description' => esc_html__( 'Use "root" to target the element wrapper: root { background: blue }', 'bricks' ),
+			'description' => esc_html__( 'Use "%root%" to target the element wrapper.', 'bricks' ) . ' ' . esc_html__( 'Add "%root%" via keyboard shortcut "r + TAB".', 'bricks' ),
+			'placeholder' => "%root% {\n  color: firebrick;\n}",
 		];
 
 		$this->controls['_cssClasses'] = [
@@ -1235,7 +1311,10 @@ abstract class Element {
 		$this->controls['infoAttributes'] = [
 			'tab'     => 'style',
 			'group'   => '_attributes',
-			'content' => sprintf( esc_html__( '%s will be added to the most relevant HTML node.', 'bricks' ), Helpers::article_link( 'custom-attributes', esc_html__( 'Custom attributes', 'bricks' ) ) ),
+			'content' => sprintf(
+				esc_html__( '%s will be added to the most relevant HTML node.', 'bricks' ),
+				Helpers::article_link( 'custom-attributes', esc_html__( 'Custom attributes', 'bricks' ) )
+			),
 			'type'    => 'info',
 		];
 	}
@@ -1439,7 +1518,7 @@ abstract class Element {
 
 		$classes[] = sanitize_html_class( "brxe-{$this->name}" );
 
-		// IS CSS grid (@since 1.x)
+		// IS CSS grid (@since 1.6.1)
 		if ( ! empty( $settings['_display'] ) && $settings['_display'] === 'grid' ) {
 			$classes[] = 'brx-grid';
 		}
@@ -1458,11 +1537,13 @@ abstract class Element {
 		}
 
 		/**
-		 * Container link (class, href, rel, target)
+		 * Add link attributes (class, href, rel, target) to layout element (section, container, block, div, etc.)
+		 *
+		 * If HTML tag is "a" (@since 1.9)
 		 *
 		 * @since 1.2.1
 		 */
-		if ( $this->is_layout_element() && ! empty( $settings['link']['type'] ) ) {
+		if ( $this->is_layout_element() && ! empty( $settings['link']['type'] ) && $this->tag === 'a' ) {
 			$this->set_link_attributes( 'link', $settings['link'] );
 
 			$container_link = isset( $this->attributes['link'] ) ? $this->attributes['link'] : [];
@@ -1871,7 +1952,7 @@ abstract class Element {
 		$link_url  = false;
 		$link_type = ! empty( $link_settings['type'] ) ? $link_settings['type'] : false;
 
-		switch( $link_type ) {
+		switch ( $link_type ) {
 			case 'meta':
 				$link_url = ! empty( $link_settings['useDynamicData'] ) ? $link_settings['useDynamicData'] : false;
 				break;
@@ -2070,6 +2151,7 @@ abstract class Element {
 	 * Frontend: Lazy load (images, videos)
 	 *
 	 * Global settings 'disableLazyLoad': Disable lazy load altogether
+	 * Page settings 'disableLazyLoad': Disable lazy load on this page (@since 1.8.6)
 	 * Element settings 'disableLazyLoad': Carousel, slider, testimonials (= bricksSwiper) (@since 1.4)
 	 *
 	 * @since 1.0
@@ -2078,7 +2160,7 @@ abstract class Element {
 		// Skip lazy load: Custom HTML attribute set to loading=eager (@since 1.6)
 		$custom_attributes = ! empty( $this->settings['_attributes'] ) ? $this->settings['_attributes'] : [];
 
-		$skip_load_load = false;
+		$skip_lazy_load = false;
 
 		if ( is_array( $custom_attributes ) ) {
 			foreach ( $custom_attributes as $attr ) {
@@ -2086,12 +2168,12 @@ abstract class Element {
 					isset( $attr['name'] ) && $attr['name'] === 'loading' &&
 					isset( $attr['value'] ) && $attr['value'] === 'eager'
 				) {
-					$skip_load_load = true;
+					$skip_lazy_load = true;
 				}
 			}
 
 			// Skip loading=eager
-			if ( $skip_load_load ) {
+			if ( $skip_lazy_load ) {
 				return false;
 			}
 		}
@@ -2100,6 +2182,7 @@ abstract class Element {
 			! bricks_is_ajax_call() &&
 			! bricks_is_rest_call() &&
 			! isset( Database::$global_settings['disableLazyLoad'] ) &&
+			! isset( Database::$page_settings['disableLazyLoad'] ) &&
 			! isset( $this->settings['disableLazyLoad'] );
 	}
 
@@ -2629,7 +2712,6 @@ abstract class Element {
 			'label'   => esc_html__( 'Loop', 'bricks' ),
 			'type'    => 'checkbox',
 			'default' => true,
-			'inline'  => true,
 		];
 
 		$controls['centerMode'] = [
@@ -2647,11 +2729,10 @@ abstract class Element {
 		];
 
 		$controls['adaptiveHeight'] = [
-			'tab'    => 'content',
-			'group'  => 'settings',
-			'label'  => esc_html__( 'Adaptive height', 'bricks' ),
-			'type'   => 'checkbox',
-			'inline' => true,
+			'tab'   => 'content',
+			'group' => 'settings',
+			'label' => esc_html__( 'Adaptive height', 'bricks' ),
+			'type'  => 'checkbox',
 		];
 
 		$controls['autoplay'] = [
@@ -2667,7 +2748,6 @@ abstract class Element {
 			'label'    => esc_html__( 'Pause on hover', 'bricks' ),
 			'type'     => 'checkbox',
 			'required' => [ 'autoplay', '!=', '' ],
-			'inline'   => true,
 		];
 
 		$controls['stopOnLastSlide'] = [
@@ -2677,7 +2757,6 @@ abstract class Element {
 			'type'     => 'checkbox',
 			'info'     => esc_html__( 'No effect with loop enabled', 'bricks' ),
 			'required' => [ 'autoplay', '!=', '' ],
-			'inline'   => true,
 		];
 
 		$controls['autoplaySpeed'] = [
@@ -2705,7 +2784,6 @@ abstract class Element {
 			'group'    => 'arrows',
 			'label'    => esc_html__( 'Show arrows', 'bricks' ),
 			'type'     => 'checkbox',
-			'inline'   => true,
 			'rerender' => true,
 			'default'  => true,
 		];
@@ -2880,6 +2958,20 @@ abstract class Element {
 			'required' => [ 'arrows', '!=', '' ],
 		];
 
+		$controls['prevArrowTransform'] = [
+			'tab'      => 'content',
+			'group'    => 'arrows',
+			'label'    => esc_html__( 'Transform', 'bricks' ),
+			'type'     => 'transform',
+			'css'      => [
+				[
+					'property' => 'transform',
+					'selector' => '.bricks-swiper-button-prev',
+				],
+			],
+			'required' => [ 'arrows', '!=', '' ],
+		];
+
 		$controls['nextArrowSeparator'] = [
 			'tab'      => 'content',
 			'group'    => 'arrows',
@@ -2961,6 +3053,20 @@ abstract class Element {
 			'css'      => [
 				[
 					'property' => 'left',
+					'selector' => '.bricks-swiper-button-next',
+				],
+			],
+			'required' => [ 'arrows', '!=', '' ],
+		];
+
+		$controls['nextArrowTransform'] = [
+			'tab'      => 'content',
+			'group'    => 'arrows',
+			'label'    => esc_html__( 'Transform', 'bricks' ),
+			'type'     => 'transform',
+			'css'      => [
+				[
+					'property' => 'transform',
 					'selector' => '.bricks-swiper-button-next',
 				],
 			],
@@ -3311,11 +3417,27 @@ abstract class Element {
 			$this->set_attribute( $node_key, 'class', 'brx-infinite-scroll' );
 		}
 
+		// AJAX loader (@since 1.9)
+		if ( ! empty( $settings['query']['ajax_loader_animation'] ) ) {
+			$ajax_loader_data = [
+				'animation' => $settings['query']['ajax_loader_animation'],
+				'selector'  => isset( $settings['query']['ajax_loader_selector'] ) ? $settings['query']['ajax_loader_selector'] : '',
+				'color'     => isset( $settings['query']['ajax_loader_color'] ) ? Assets::generate_css_color( $settings['query']['ajax_loader_color'] ) : '',
+				'scale'     => isset( $settings['query']['ajax_loader_scale'] ) ? $settings['query']['ajax_loader_scale'] : '',
+			];
+
+			$this->set_attribute( $node_key, 'data-brx-ajax-loader', wp_json_encode( $ajax_loader_data ) );
+		}
+
 		// Element ID
 		$this->set_attribute( $node_key, 'data-query-element-id', $this->id );
 
+		// Unset 'queryEditor' value as not needed in the frontend (@since 1.9.1)
+		if ( isset( $query->query_vars['queryEditor'] ) ) {
+			unset( $query->query_vars['queryEditor'] );
+		}
 		// Query vars: needed to make sure the context is the same if the query was merged with the global query (@since 1.5.1)
-		$this->set_attribute( $node_key, 'data-query-vars', json_encode( $query->query_vars ) );
+		$this->set_attribute( $node_key, 'data-query-vars', wp_json_encode( $query->query_vars ) );
 
 		// Pagination
 		$this->set_attribute( $node_key, 'data-page', $page );
@@ -3380,9 +3502,12 @@ abstract class Element {
 	}
 
 	/**
-	 * Setup custom query for templates according to 'templatePreviewType'
+	 * Setup query for templates according to 'templatePreviewType'
 	 *
 	 * To alter builder template and template preview query. NOT the frontend!
+	 *
+	 * 1. Set element $post_id
+	 * 2. Populate query_args from"Populate content" settings and set it to global $wp_query
 	 *
 	 * @param integer $post_id
 	 *
@@ -3393,13 +3518,7 @@ abstract class Element {
 			$post_id = get_the_ID();
 		}
 
-		// Store $wp_query in $original_query to restore it via restore_query() after element has been rendered
-		global $wp_query;
-
-		$this->original_query = $wp_query;
-
-		$query_args = [];
-
+		// STEP: Set post ID to template preview ID if direct edit or single template preview
 		$template_settings     = Helpers::get_template_settings( $post_id );
 		$template_preview_type = Helpers::get_template_setting( 'templatePreviewType', $post_id );
 
@@ -3408,89 +3527,30 @@ abstract class Element {
 			$template_preview_type = 'direct-edit';
 		}
 
-		switch ( $template_preview_type ) {
-			// Archive: Recent posts
-			case 'archive-recent-posts':
-				$query_args['post_type'] = 'post';
-				break;
+		if ( in_array( $template_preview_type, [ 'direct-edit', 'single' ] ) ) {
+			// @since 1.8 - If direct edit page or post with Bricks, use the $post_id (#861m48kv4)
+			$template_preview_post_id = ( $template_preview_type === 'direct-edit' ) ? $post_id : Helpers::get_template_setting( 'templatePreviewPostId', $post_id );
 
-			// Archive: author
-			case 'archive-author':
-				$template_preview_author = Helpers::get_template_setting( 'templatePreviewAuthor', $post_id );
+			if ( $template_preview_post_id ) {
+				// Set the global $post to affect the entire WP environment (needed for WooCommerce)
+				global $post;
+				$post = get_post( $template_preview_post_id );
+				setup_postdata( $post );
 
-				if ( $template_preview_author ) {
-					$query_args['author'] = $template_preview_author;
-				}
-				break;
-
-			// Author date
-			case 'archive-date':
-				$query_args['year'] = date( 'Y' );
-				break;
-
-			// Archive CPT
-			case 'archive-cpt':
-				$template_preview_post_type = Helpers::get_template_setting( 'templatePreviewPostType', $post_id );
-
-				if ( $template_preview_post_type ) {
-					$query_args['post_type'] = $template_preview_post_type;
-				}
-				break;
-
-			// Archive term
-			case 'archive-term':
-				$template_preview_term_id_parts = isset( $template_settings['templatePreviewTerm'] ) ? explode( '::', $template_settings['templatePreviewTerm'] ) : '';
-				$template_preview_taxnomy       = isset( $template_preview_term_id_parts[0] ) ? $template_preview_term_id_parts[0] : '';
-				$template_preview_term_id       = isset( $template_preview_term_id_parts[1] ) ? $template_preview_term_id_parts[1] : '';
-
-				if ( $template_preview_taxnomy && $template_preview_term_id ) {
-					$query_args['tax_query'] = [
-						[
-							'taxonomy' => $template_preview_taxnomy,
-							'terms'    => $template_preview_term_id,
-							'field'    => 'term_id',
-						],
-					];
-				}
-				break;
-
-			// Search
-			case 'search':
-				$template_preview_search_term = Helpers::get_template_setting( 'templatePreviewSearchTerm', $post_id );
-
-				if ( $template_preview_search_term ) {
-					$query_args['s'] = $template_preview_search_term;
-				}
-				break;
-
-			// Single
-			case 'direct-edit':
-			case 'single':
-				// @since 1.8 - If direct edit page or post with Bricks, use the $post_id (#861m48kv4)
-				$template_preview_post_id = ( $template_preview_type === 'direct-edit' ) ? $post_id : Helpers::get_template_setting( 'templatePreviewPostId', $post_id );
-
-				// Set post ID to template preview ID
-				if ( $template_preview_post_id ) {
-					$query_args['p']         = $template_preview_post_id;
-					$query_args['post_type'] = get_post_type( $template_preview_post_id );
-
-					// Set the global $post to affect the entire WP environment (needed for WooCommerce)
-					global $post;
-					$post = get_post( $template_preview_post_id );
-					setup_postdata( $post );
-
-					// Set the preview ID as the Post ID before render this element (@since 1.5.7)
-					$this->set_post_id( $template_preview_post_id );
-				}
-
-				break;
+				// Set the preview ID as the Post ID before render this element (@since 1.5.7)
+				$this->set_post_id( $template_preview_post_id );
+			}
 		}
 
-		// NOTE: Undocumented
-		$query_args = apply_filters( 'bricks/element/builder_setup_query', $query_args, $post_id );
+		// STEP: Populate query_args from populate content settings. Moved the logic to helpers class (@since 1.9.1)
+		$query_args = Helpers::get_template_preview_query_vars( $post_id );
 
 		// Init query with template preview args
 		if ( ! empty( $query_args ) && is_array( $query_args ) ) {
+			// Store $wp_query in $original_query to restore it via restore_query() after element has been rendered
+			global $wp_query;
+			$this->original_query = $wp_query;
+			// This is still needed in template preview (i.e. Pagination element if targeting main query)
 			$wp_query = new \WP_Query( $query_args );
 		}
 	}

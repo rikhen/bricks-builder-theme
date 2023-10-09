@@ -264,7 +264,7 @@ class Element_Carousel extends Element {
 	public function render() {
 		$settings = $this->settings;
 
-		// https://swiperjs.com/api
+		// https://swiperjs.com/swiper-api
 		$options = [
 			'slidesPerView'  => isset( $settings['slidesToShow'] ) ? intval( $settings['slidesToShow'] ) : 2,
 			'slidesPerGroup' => isset( $settings['slidesToScroll'] ) ? intval( $settings['slidesToScroll'] ) : 1,

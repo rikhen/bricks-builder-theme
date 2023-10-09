@@ -22,7 +22,7 @@ class Element_Post_Table_Of_Contents extends Element {
 		wp_enqueue_script( 'bricks-tocbot' );
 	}
 
-  public function set_controls() {
+	public function set_controls() {
 		$this->controls['contentSelector'] = [
 			'label'       => esc_html__( 'Content selector', 'bricks' ),
 			'type'        => 'text',
@@ -31,18 +31,18 @@ class Element_Post_Table_Of_Contents extends Element {
 		];
 
 		$this->controls['headingSelectors'] = [
-      'label'       => esc_html__( 'Heading selectors', 'bricks' ),
-      'type'        => 'text',
+			'label'       => esc_html__( 'Heading selectors', 'bricks' ),
+			'type'        => 'text',
 			'inline'      => true,
-      'placeholder' => 'h2, h3',
-    ];
+			'placeholder' => 'h2, h3',
+		];
 
 		$this->controls['ignoreSelector'] = [
-      'label'       => esc_html__( 'Ignore selector', 'bricks' ),
-      'type'        => 'text',
+			'label'       => esc_html__( 'Ignore selector', 'bricks' ),
+			'type'        => 'text',
 			'inline'      => true,
-      'placeholder' => '.toc-ignore',
-    ];
+			'placeholder' => '.toc-ignore',
+		];
 
 		$this->controls['collapseInactive'] = [
 			'label'    => esc_html__( 'Collapse inactive', 'bricks' ),
@@ -51,8 +51,8 @@ class Element_Post_Table_Of_Contents extends Element {
 		];
 
 		$this->controls['noWrap'] = [
-			'label'   => esc_html__( 'No wrap', 'bricks' ),
-			'type'    => 'checkbox',
+			'label' => esc_html__( 'No wrap', 'bricks' ),
+			'type'  => 'checkbox',
 		];
 
 		$this->controls['sticky'] = [
@@ -65,7 +65,7 @@ class Element_Post_Table_Of_Contents extends Element {
 			'label'    => esc_html__( 'Top', 'bricks' ),
 			'type'     => 'number',
 			'units'    => true,
-			'css' 	   => [
+			'css'      => [
 				[
 					'property' => 'top',
 					'selector' => '&[data-sticky]',
@@ -88,37 +88,37 @@ class Element_Post_Table_Of_Contents extends Element {
 		];
 
 		$this->controls['itemPadding'] = [
-      'label' => esc_html__( 'Padding', 'bricks' ),
-      'type'  => 'spacing',
-      'css'   => [
-        [
-          'property' => 'padding',
-          'selector' => '.toc-list-item',
+			'label' => esc_html__( 'Padding', 'bricks' ),
+			'type'  => 'spacing',
+			'css'   => [
+				[
+					'property' => 'padding',
+					'selector' => '.toc-list-item',
 				],
-      ],
-    ];
+			],
+		];
 
 		$this->controls['itemBorder'] = [
-      'label' => esc_html__( 'Border', 'bricks' ),
-      'type'  => 'border',
-      'css'   => [
-        [
-          'property' => 'border',
-          'selector' => '.toc-link::before',
+			'label' => esc_html__( 'Border', 'bricks' ),
+			'type'  => 'border',
+			'css'   => [
+				[
+					'property' => 'border',
+					'selector' => '.toc-link::before',
 				],
-      ],
-    ];
+			],
+		];
 
 		$this->controls['itemTypography'] = [
-      'label' => esc_html__( 'Typography', 'bricks' ),
-      'type'  => 'typography',
-      'css'   => [
-        [
-          'property' => 'font',
-          'selector' => '.toc-link',
+			'label' => esc_html__( 'Typography', 'bricks' ),
+			'type'  => 'typography',
+			'css'   => [
+				[
+					'property' => 'font',
+					'selector' => '.toc-link',
 				],
-      ],
-    ];
+			],
+		];
 
 		// ACTIVE
 
@@ -127,39 +127,39 @@ class Element_Post_Table_Of_Contents extends Element {
 			'type'  => 'separator',
 		];
 
-    $this->controls['itemBorderActive'] = [
-      'label' => esc_html__( 'Border', 'bricks' ),
-      'type'  => 'border',
-      'css'   => [
-        [
-          'property' => 'border',
-          'selector' => '.toc-link.is-active-link::before',
+		$this->controls['itemBorderActive'] = [
+			'label' => esc_html__( 'Border', 'bricks' ),
+			'type'  => 'border',
+			'css'   => [
+				[
+					'property' => 'border',
+					'selector' => '.toc-link.is-active-link::before',
 				],
-      ],
-    ];
+			],
+		];
 
 		// NOTE: Requires linkPadding (<a>)
 		// $this->controls['itemBackgroundActive'] = [
-    //   'label' => esc_html__( 'Background color', 'bricks' ),
-    //   'type'  => 'color',
-    //   'css'   => [
-    //     [
-    //       'property' => 'background-color',
-    //       'selector' => '.toc-link.is-active-link',
-		// 		],
-    //   ],
-    // ];
+		// 'label' => esc_html__( 'Background color', 'bricks' ),
+		// 'type'  => 'color',
+		// 'css'   => [
+		// [
+		// 'property' => 'background-color',
+		// 'selector' => '.toc-link.is-active-link',
+		// ],
+		// ],
+		// ];
 
 		$this->controls['itemTypographyActive'] = [
-      'label' => esc_html__( 'Typography', 'bricks' ),
-      'type'  => 'typography',
-      'css'   => [
-        [
-          'property' => 'font',
-          'selector' => '.toc-link.is-active-link',
+			'label' => esc_html__( 'Typography', 'bricks' ),
+			'type'  => 'typography',
+			'css'   => [
+				[
+					'property' => 'font',
+					'selector' => '.toc-link.is-active-link',
 				],
-      ],
-    ];
+			],
+		];
 	}
 
 	public function render() {

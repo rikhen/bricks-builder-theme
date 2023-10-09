@@ -135,12 +135,15 @@ class Providers {
 		 */
 		// Get all registered tags except the excluded ones.
 		// Example: [0 => "post_title", 1 => "woo_product_price", 2 => "echo"]
-		$registered_tags = array_filter( array_keys( $this->get_tags() ), function( $tag ) use ( $exclude_tags ) {
-			return ! in_array( $tag, $exclude_tags );
-		} );
+		$registered_tags = array_filter(
+			array_keys( $this->get_tags() ),
+			function( $tag ) use ( $exclude_tags ) {
+				return ! in_array( $tag, $exclude_tags );
+			}
+		);
 
 		$dd_tags_in_content = [];
-		$dd_tags_found = [];
+		$dd_tags_found      = [];
 
 		// Find all dynamic data tags in the content
 		preg_match_all( $pattern, $content, $dd_tags_in_content );
@@ -158,26 +161,29 @@ class Providers {
 			 * Example: $registered_tags    = [0 => "post_title", 1 => "woo_product_price", 2 => "echo"]
 			 * Example: $dd_tags_in_content = [0 => "post_title", 1 => "woo_product_price:value", 2 => "echo:my_function('Hello World')"]
 			 */
-			$dd_tags_found = array_filter( $dd_tags_in_content, function( $tag ) use ( $registered_tags ) {
-				foreach ( $registered_tags as $all_tag ) {
-					/**
-					 * Skip WP custom field (starts with cf_)
-					 *
-					 * As Provider_Wp->get_site_meta_keys() can cause performance issues on larger sites
-					 *
-					 * @see #862k3f2md
-					 * @since 1.8.3
-					 */
-					if ( strpos( $tag, 'cf_' ) === 0 ) {
-						return true;
-					}
+			$dd_tags_found = array_filter(
+				$dd_tags_in_content,
+				function( $tag ) use ( $registered_tags ) {
+					foreach ( $registered_tags as $all_tag ) {
+						/**
+						 * Skip WP custom field (starts with cf_)
+						 *
+						 * As Provider_Wp->get_site_meta_keys() can cause performance issues on larger sites
+						 *
+						 * @see #862k3f2md
+						 * @since 1.8.3
+						 */
+						if ( strpos( $tag, 'cf_' ) === 0 ) {
+							return true;
+						}
 
-					if ( strpos( $tag, $all_tag ) === 0 ) {
-						return true;
+						if ( strpos( $tag, $all_tag ) === 0 ) {
+							return true;
+						}
 					}
+					return false;
 				}
-				return false;
-			} );
+			);
 		}
 
 		// Get the count of found dynamic data tags

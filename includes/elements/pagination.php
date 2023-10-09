@@ -229,7 +229,8 @@ class Pagination extends Element {
 				]
 			);
 
-			if ( $query_obj->object_type !== 'post' ) {
+			// Support pagination for post, user and term query object type (@since 1.9.1)
+			if ( ! in_array( $query_obj->object_type, [ 'post','user','term' ] ) ) {
 				return $this->render_element_placeholder(
 					[
 						'title' => esc_html__( 'This query type doesn\'t support pagination.', 'bricks' ),
@@ -237,10 +238,10 @@ class Pagination extends Element {
 				);
 			}
 
-			$query = $query_obj->query_result;
+			global $wp_query;
 
-			$current_page = max( 1, $query->get( 'paged', 1 ) );
-			$total_pages  = $query->max_num_pages;
+			$current_page = max( 1, $wp_query->get( 'paged', 1 ) );
+			$total_pages  = $query_obj->max_num_pages;
 
 			// We need to destroy the Query to explicitly remove it from the global store
 			$query_obj->destroy();
@@ -253,6 +254,15 @@ class Pagination extends Element {
 
 			$current_page = max( 1, $wp_query->get( 'paged', 1 ) );
 			$total_pages  = $wp_query->max_num_pages;
+		}
+
+		// Return: Less than two pages (@since 1.9.1)
+		if ( $total_pages <= 1 ) {
+			return $this->render_element_placeholder(
+				[
+					'title' => esc_html__( 'No pagination results.', 'bricks' ),
+				]
+			);
 		}
 
 		// Hooks

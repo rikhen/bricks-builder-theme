@@ -231,7 +231,12 @@ class Woocommerce_Products extends Element {
 
 		// Query: Force the post type and feed the Bricks Query class
 		$settings['query']['post_type']           = [ 'product' ];
-		$settings['query']['ignore_sticky_posts'] = 1;
+		$settings['query']['ignore_sticky_posts'] = true;
+
+		// @since 1.9.1 - Set is_archive_main_query inside query key so the Query class understands
+		if ( isset( $settings['is_archive_main_query'] ) ) {
+			$settings['query']['is_archive_main_query'] = true;
+		}
 
 		$query_object = new Query(
 			[

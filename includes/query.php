@@ -72,6 +72,13 @@ class Query {
 	private $cache_key = false;
 
 	/**
+	 * Store query history (including those destroyed)
+	 *
+	 * @since 1.9.1
+	 */
+	public static $query_history = [];
+
+	/**
 	 * Class constructor
 	 *
 	 * @param array $element
@@ -81,26 +88,138 @@ class Query {
 
 		$this->element_id = ! empty( $element['id'] ) ? $element['id'] : '';
 
-		$this->object_type = ! empty( $element['settings']['query']['objectType'] ) ? $element['settings']['query']['objectType'] : 'post';
+		// Check for stored query in query history (@since 1.9.1)
+		$query_instance = self::get_query_by_element_id( $this->element_id );
 
-		// Remove object type from query vars to avoid future conflicts
-		unset( $element['settings']['query']['objectType'] );
+		if ( $query_instance ) {
+			// Assign the history query instance properties to this instance, avoid running the query again
+			foreach ( $query_instance as $key => $value ) {
+				if ( $key === 'id' ) {
+					continue;
+				}
+				$this->$key = $value;
+			}
+		} else {
+			$this->object_type = ! empty( $element['settings']['query']['objectType'] ) ? $element['settings']['query']['objectType'] : 'post';
 
-		$this->settings = ! empty( $element['settings'] ) ? $element['settings'] : [];
+			// Remove object type from query vars to avoid future conflicts
+			unset( $element['settings']['query']['objectType'] );
 
-		// STEP: Set the query vars from the element settings (@since 1.8)
-		$this->query_vars = self::prepare_query_vars_from_settings( $this->settings );
+			$this->settings = ! empty( $element['settings'] ) ? $element['settings'] : [];
 
-		// STEP: Perform the query, set the query result, count and max_num_pages (@since 1.8)
-		$this->run();
+			// STEP: Set the query vars from the element settings (@since 1.8)
+			$this->query_vars = self::prepare_query_vars_from_settings( $this->settings );
+
+			// STEP: Perform the query, set the query result, count and max_num_pages (@since 1.8)
+			$this->run();
+
+			/**
+			 * Filter: Force query run (to skip add_to_history() method below)
+			 *
+			 * AJAX filter plugins, etc. might want to use this.
+			 *
+			 * @see https://academy.bricksbuilder.io/article/filter-bricks-query-force_run/
+			 *
+			 * @since 1.9.1.1
+			 */
+			$force_run = apply_filters( 'bricks/query/force_run', false, $this );
+
+			/**
+			 * STEP: Add query instance to query history (Query::$query_history) to access & reuse query instance later
+			 *
+			 * Only for WP core query types (post, term, user) as other potentially nested query types (e.g. ACF, Meta Box, Woo cart content, etc.) don't have a unique ID.
+			 *
+			 * @since 1.9.1
+			 */
+			if ( in_array( $this->object_type, [ 'post', 'term', 'user' ] ) && ! $force_run ) {
+				$this->add_to_history();
+			}
+		}
 	}
 
 	/**
-	 * Add this query to the global store
+	 * Get query instance by element ID from the query history
+	 *
+	 * @since 1.9.1
+	 */
+	public static function get_query_by_element_id( $element_id = '', $is_dynamic_data = false ) {
+		if ( empty( $element_id ) ) {
+			return false;
+		}
+
+		$query           = false;
+		$history_queries = self::$query_history;
+
+		// Check if any query history element_id matches the given element_id
+		if ( ! empty( $history_queries ) ) {
+			$query_history_id = self::generate_query_history_id( $element_id );
+
+			if ( isset( $history_queries[ $query_history_id ] ) ) {
+				$query = $history_queries[ $query_history_id ];
+			}
+
+			// If using in dynamic data, and no query history found, maybe user wants to get query history based on $element_id
+			if ( ! $query && $is_dynamic_data && self::is_looping() ) {
+				if ( isset( $history_queries[ $element_id ] ) ) {
+					$query = $history_queries[ $element_id ];
+				}
+			}
+		}
+
+		return $query;
+	}
+
+	/**
+	 * Add current query instance to query history
+	 *
+	 * @since 1.9.1
+	 */
+	public function add_to_history() {
+		$identifier = self::generate_query_history_id( $this->element_id );
+
+		if ( $identifier ) {
+			self::$query_history[ $identifier ] = $this;
+		}
+	}
+
+	/**
+	 * Generate a unique identifier for the query history
+	 *
+	 * Use combination of element_id, nested_query_object_type, nested_query_element_id, nested_loop_object_id.
+	 *
+	 * @since 1.9.1
+	 */
+	public static function generate_query_history_id( $element_id ) {
+		$unique_id        = [];
+		$looping_query_id = self::is_any_looping();
+
+		if ( $looping_query_id && $looping_query_id !== $element_id ) {
+			$unique_id[] = self::get_query_element_id( $looping_query_id );
+			$unique_id[] = $element_id;
+			$unique_id[] = self::get_query_object_type( $looping_query_id );
+
+			// Get loop ID
+			$loop_id = self::get_loop_object_id( $looping_query_id );
+			if ( $loop_id ) {
+				$unique_id[] = $loop_id;
+			}
+
+			// Return: No loop ID found
+			else {
+				return;
+			}
+		} else {
+			$unique_id[] = $element_id;
+		}
+
+		return implode( '_', $unique_id );
+	}
+
+	/**
+	 * Add query to global store
 	 */
 	public function register_query() {
 		global $bricks_loop_query;
-
 		$this->id = Helpers::generate_random_id( false );
 
 		if ( ! is_array( $bricks_loop_query ) ) {
@@ -177,7 +296,7 @@ class Query {
 	 *
 	 * @since 1.8
 	 */
-	public static function prepare_query_vars_from_settings( $settings ) {
+	public static function prepare_query_vars_from_settings( $settings = [], $fallback_element_id = '' ) {
 		$query_vars = isset( $settings['query'] ) ? $settings['query'] : [];
 
 		// Unset infinite scroll
@@ -196,6 +315,88 @@ class Query {
 		$object_type = self::get_query_object_type();
 		$element_id  = self::get_query_element_id();
 
+		/**
+		 * Use PHP editor
+		 *
+		 * Returns PHP array with query arguments
+		 *
+		 * Supported if 'objectType' is 'post', 'term' or 'user'.
+		 * No merge query.
+		 *
+		 * @since 1.9.1
+		 */
+		if ( isset( $query_vars['useQueryEditor'] ) && ! empty( $query_vars['queryEditor'] ) && in_array( $object_type, [ 'post','term','user' ] ) ) {
+			$post_id                      = Database::$page_data['preview_or_post_id'];
+			$php_query_raw                = bricks_render_dynamic_data( $query_vars['queryEditor'], $post_id );
+			$query_vars['posts_per_page'] = get_option( 'posts_per_page' );
+
+			// Define an anonymous function that simulates the scope for user code
+			$execute_user_code = function () use ( $php_query_raw ) {
+				$userResult = null; // Initialize a variable to capture the result of user code
+
+				// Capture user code output using output buffering
+				ob_start();
+				$userResult = eval( $php_query_raw ); // Execute the user code
+				ob_get_clean(); // Get the captured output
+
+				return $userResult; // Return the user code result
+			};
+
+			ob_start();
+
+			// Prepare & set error reporting
+			$error_reporting = error_reporting( E_ALL );
+			$display_errors  = ini_get( 'display_errors' );
+			ini_set( 'display_errors', 1 );
+
+			try {
+				$php_query = $execute_user_code();
+			} catch ( \Exception $error ) {
+				echo 'Exception: ' . $error->getMessage();
+				return;
+			} catch ( \ParseError $error ) {
+				echo 'ParseError: ' . $error->getMessage();
+				return;
+			} catch ( \Error $error ) {
+				echo 'Error: ' . $error->getMessage();
+				return;
+			}
+
+			// Reset error reporting
+			ini_set( 'display_errors', $display_errors );
+			error_reporting( $error_reporting );
+
+			// @see https://www.php.net/manual/en/function.eval.php
+			if ( version_compare( PHP_VERSION, '7', '<' ) && $php_query === false || ! empty( $error ) ) {
+				// $php_query = $error;
+				ob_end_clean();
+			} else {
+				ob_get_clean();
+			}
+
+			if ( ! empty( $php_query ) && is_array( $php_query ) ) {
+				$query_vars          = array_merge( $query_vars, $php_query );
+				$query_vars['paged'] = self::get_paged_query_var( $query_vars );
+			}
+
+			return $query_vars;
+		}
+
+		/**
+		 * $object_type and $element_id are empty when this method is called in pre_get_post (main query)
+		 * Reason: We just call prepare_query_vars_from_settings() without initializing the Query class
+		 * Impact: Some query_vars will be missing because not going through the switch statement and Bricks PHP filters not fired
+		 *
+		 * @since 1.9.1
+		 */
+		if ( empty( $object_type ) ) {
+			$object_type = isset( $settings['query']['objectType'] ) ? $settings['query']['objectType'] : 'post';
+		}
+
+		if ( empty( $element_id ) && ! empty( $fallback_element_id ) ) {
+			$element_id = $fallback_element_id;
+		}
+
 		// Meta Query vars
 		$query_vars = self::parse_meta_query_vars( $query_vars );
 
@@ -203,28 +404,43 @@ class Query {
 		switch ( $object_type ) {
 			case 'post':
 				// Attachments
-				$is_attachment_query = false;
+				$query_attachments      = false;
+				$query_only_attachments = false;
+
 				// post_type can be 'string' or 'array'
 				$post_type = ! empty( $query_vars['post_type'] ) ? $query_vars['post_type'] : false;
 
 				if ( $post_type ) {
 					if ( is_array( $post_type ) ) {
-						$is_attachment_query = in_array( 'attachment', $post_type ) && count( $post_type ) == 1;
+						$query_attachments = in_array( 'attachment', $post_type );
+
+						if ( $query_attachments && count( $post_type ) === 1 ) {
+							$query_only_attachments = true;
+						}
 					} else {
-						$is_attachment_query = $post_type === 'attachment';
+						$query_attachments      = $post_type === 'attachment';
+						$query_only_attachments = $post_type === 'attachment';
 					}
 				}
 
-				// @since 1.5: If the post type is 'attachment', change default post status to 'inherit' @see: https://developer.wordpress.org/reference/classes/wp_query/#post-type-parameters
-				$query_vars['post_status'] = $is_attachment_query ? 'inherit' : 'publish';
+				$query_vars['post_status'] = 'publish';
 
-				// post_mime_type: used only for post_type = 'attachment' (@since 1.5)
-				if ( $is_attachment_query ) {
+				/**
+				 * Post type 'attachment' included: Add post status 'inherit'
+				 *
+				 * @see: https://developer.wordpress.org/reference/classes/wp_query/#post-type-parameters
+				 */
+				if ( $query_attachments ) {
+					$query_vars['post_status'] = [ 'inherit', 'publish' ];
+				}
+
+				// Query ONLY attachments: Set 'post_mime_type' query var
+				if ( $query_only_attachments ) {
 					$mime_types = isset( $query_vars['post_mime_type'] ) ? bricks_render_dynamic_data( $query_vars['post_mime_type'] ) : 'image';
 
 					$mime_types = explode( ',', $mime_types );
 
-					$tquery_vars['post_mime_type'] = $mime_types;
+					$query_vars['post_mime_type'] = $mime_types;
 				}
 
 				// Page & Pagination
@@ -304,6 +520,9 @@ class Query {
 				// Pagination: Fix the offset value (@since 1.5)
 				$offset = ! empty( $query_vars['offset'] ) ? $query_vars['offset'] : 0;
 
+				// Store the original offset value (@since 1.9.1)
+				$query_vars['original_offset'] = $offset;
+
 				// If pagination exists, and number is limited (!= 0), use $offset as the pagination trigger
 				if ( $paged !== 1 && ! empty( $query_vars['number'] ) ) {
 					$query_vars['offset'] = ( $paged - 1 ) * $query_vars['number'] + $offset;
@@ -354,6 +573,17 @@ class Query {
 					unset( $query_vars['post_type'] );
 				}
 
+				// Current Post Author - (@since 1.9.1)
+				if ( isset( $query_vars['current_post_author'] ) ) {
+					$current_post = get_post(); // Get the current post object
+					// Check if the current post has an author
+					if ( is_a( $current_post, 'WP_Post' ) && ! empty( $current_post->post_author ) ) {
+						$query_vars['include'] = $current_post->post_author;
+					}
+
+					unset( $query_vars['current_post_author'] );
+				}
+
 				// Paged
 				$query_vars['paged'] = self::get_paged_query_var( $query_vars );
 
@@ -362,6 +592,9 @@ class Query {
 
 				// Pagination: Fix the offset value (@since 1.5)
 				$offset = ! empty( $query_vars['offset'] ) ? $query_vars['offset'] : 0;
+
+				// Store the original offset value (@since 1.9.1)
+				$query_vars['original_offset'] = $offset;
 
 				if ( ! empty( $offset ) && $query_vars['paged'] !== 1 ) {
 					$query_vars['offset'] = ( $query_vars['paged'] - 1 ) * $query_vars['number'] + $offset;
@@ -400,8 +633,9 @@ class Query {
 			case 'term':
 				$result = $this->run_wp_term_query();
 
-				// Pagination: Fix the offset value  (@since 1.5)
-				$offset = ! empty( $query_vars['offset'] ) ? $query_vars['offset'] : 0;
+				// STEP: Get the original offset value (@since 1.9.1)
+				$original_offset = ! empty( $query_vars['original_offset'] ) ? $query_vars['original_offset'] : 0;
+
 				// STEP: Populate the total count
 				if ( empty( $query_vars['number'] ) ) {
 					$count = ! empty( $result ) && is_array( $result ) ? count( $result ) : 0;
@@ -411,20 +645,21 @@ class Query {
 					unset( $args['offset'] );
 					unset( $args['number'] );
 
+					// Set hide_empty to true if not set as we are passing $args into wp_count_terms() (@since 1.9.1)
+					if ( ! isset( $args['hide_empty'] ) ) {
+						$args['hide_empty'] = true;
+					}
+
 					// Numeric string containing the number of terms in that taxonomy or WP_Error if the taxonomy does not exist.
 					$count = wp_count_terms( $args );
+					$count = is_wp_error( $count ) ? 0 : (int) $count;
 
-					if ( is_wp_error( $count ) ) {
-						$count = 0;
-					} else {
-						$count = (int) $count;
-
-						$count = $offset <= $count ? $count - $offset : 0;
-					}
+					// Subtract the $original_offset to fix pagination (@since 1.9.1)
+					$count = $count > 0 ? $count - $original_offset : 0;
 				}
 
 				// STEP : Populate the max number of pages
-				$max_num_pages = empty( $query_vars['number'] ) ? 1 : ceil( $count / $query_vars['number'] );
+				$max_num_pages = empty( $query_vars['number'] ) || count( $result ) < 1 ? 1 : ceil( $count / $query_vars['number'] );
 				break;
 
 			case 'user':
@@ -436,14 +671,14 @@ class Query {
 				// STEP: Populate the total count of the users in this query
 				$count = $users_query->get_total();
 
-				// Pagination: Fix the offset value (@since 1.5)
-				$offset = ! empty( $query_vars['offset'] ) ? $query_vars['offset'] : 0;
+				// STEP: Get the original offset value (@since 1.9.1)
+				$original_offset = ! empty( $query_vars['original_offset'] ) ? $query_vars['original_offset'] : 0;
 
-				// Subtract the $offset to fix pagination
-				$count = $offset <= $count ? $count - $offset : 0;
+				// STEP: Subtract the $original_offset to fix pagination (@since 1.9.1)
+				$count = $count > 0 ? $count - $original_offset : 0;
 
 				// STEP : Populate the max number of pages
-				$max_num_pages = empty( $query_vars['number'] ) ? 1 : ceil( $count / $query_vars['number'] );
+				$max_num_pages = empty( $query_vars['number'] ) || count( $result ) < 1 ? 1 : ceil( $count / $query_vars['number'] );
 				break;
 
 			default:
@@ -461,13 +696,15 @@ class Query {
 		 *
 		 * @see https://academy.bricksbuilder.io/article/filter-bricks-query-result/
 		 * @see https://academy.bricksbuilder.io/article/filter-bricks-query-result_count/
+		 * @see https://academy.bricksbuilder.io/article/filter-bricks-query-result_max_num_pages/ (@since 1.9.1)
 		 *
 		 * @since 1.8
 		 */
-		$this->query_result  = apply_filters( 'bricks/query/result', $result, $this );
-		$this->count         = apply_filters( 'bricks/query/result_count', $count, $this );
-		// $this->max_num_pages = apply_filters( 'bricks/query/result_max_num_pages', $max_num_pages, $this );
-		$this->max_num_pages = $max_num_pages; // This value seems like not in use as max_num_pages should be coming from
+		$this->query_result = apply_filters( 'bricks/query/result', $result, $this );
+		$this->count        = apply_filters( 'bricks/query/result_count', $count, $this );
+
+		// Pagination element relies on this value (@since 1.9.1)
+		$this->max_num_pages = apply_filters( 'bricks/query/result_max_num_pages', $max_num_pages, $this );
 	}
 
 	/**
@@ -537,7 +774,28 @@ class Query {
 				add_filter( 'posts_orderby', [ $this, 'set_bricks_query_loop_random_order_seed' ], 11 );
 			}
 
-			$posts_query = new \WP_Query( $this->query_vars );
+			global $wp_query;
+			$is_bricks_preview     = $wp_query->get( 'post_type' ) === BRICKS_DB_TEMPLATE_SLUG || bricks_is_builder_call() ? true : false;
+			$is_archive_main_query = isset( $this->settings['query']['is_archive_main_query'] ) ? true : false;
+
+			/**
+			 * Set builder preview query_vars as we are not relying on setup_query function in includes/elements/base.php anymore
+			 *
+			 * @since 1.9.1
+			 */
+			if ( $is_bricks_preview ) {
+				$post_id                    = Database::$page_data['preview_or_post_id'];
+				$builder_preview_query_vars = Helpers::get_template_preview_query_vars( $post_id );
+				$this->query_vars           = wp_parse_args( $this->query_vars, $builder_preview_query_vars );
+			}
+
+			/**
+			 * Use main query if is_archive_main_query and not preview bricks template
+			 * Otherwise, run a new query
+			 *
+			 * @since 1.9.1
+			 */
+			$posts_query = $is_archive_main_query && ! $is_bricks_preview ? $wp_query : new \WP_Query( $this->query_vars );
 
 			// @since 1.7.1 - Avoid duplicate posts when using 'rand' orderby
 			if ( $use_random_seed ) {
@@ -561,15 +819,18 @@ class Query {
 	 * @return integer
 	 */
 	public static function get_paged_query_var( $query_vars ) {
-		// @since 1.7.1 - Avoid query_var param merged accidentally if disable_query_merge is true
-		$disable_query_merge = isset( $query_vars['disable_query_merge'] );
-
-		if ( $disable_query_merge ) {
-			// @since 1.7.1 - Return paged 1 if disable_query_merge is true
-			return 1;
-		}
-
 		$paged = 1;
+
+		/**
+		 * Return paged 1 if 'disable_query_merge' is true
+		 *
+		 * Avoid query_var param merged accidentally if 'disable_query_merge' is true
+		 *
+		 * @since 1.7.1
+		 */
+		if ( isset( $query_vars['disable_query_merge'] ) ) {
+			return $paged;
+		}
 
 		if ( get_query_var( 'page' ) ) {
 			// Check for 'page' on static front page
@@ -781,17 +1042,25 @@ class Query {
 	 * @return void
 	 */
 	public function init_loop_index() {
+		$paged  = isset( $this->query_vars['paged'] ) ? $this->query_vars['paged'] : 1;
+		$offset = isset( $this->query_vars['offset'] ) ? $this->query_vars['offset'] : 0;
+
+		// Type: post
 		if ( $this->object_type == 'post' ) {
-			$offset = isset( $this->query_vars['offset'] ) ? $this->query_vars['offset'] : 0;
+			// 'posts_per_page' not set by default when using 'queryEditor' (@since 1.9.1)
+			$posts_per_page = isset( $this->query_vars['posts_per_page'] ) ? intval( $this->query_vars['posts_per_page'] ) : get_option( 'posts_per_page' );
 
-			return $offset + ( $this->query_vars['posts_per_page'] > 0 ? ( $this->query_vars['paged'] - 1 ) * $this->query_vars['posts_per_page'] : 0 );
-		} elseif ( $this->object_type == 'term' ) {
+			return $offset + ( $posts_per_page > 0 ? ( $paged - 1 ) * $posts_per_page : 0 );
+		}
+
+		// Type: term
+		if ( $this->object_type == 'term' ) {
 			return isset( $this->query_vars['offset'] ) ? $this->query_vars['offset'] : 0;
-		} elseif ( $this->object_type == 'user' ) {
-			$offset = isset( $this->query_vars['offset'] ) ? $this->query_vars['offset'] : 0;
-			$page   = isset( $this->query_vars['paged'] ) ? $this->query_vars['paged'] : 1;
+		}
 
-			return $offset + ( $this->query_vars['number'] > 0 ? ( $page - 1 ) * $this->query_vars['number'] : 0 );
+		// Type: user
+		if ( $this->object_type == 'user' ) {
+			return $offset + ( $this->query_vars['number'] > 0 ? ( $paged - 1 ) * $this->query_vars['number'] : 0 );
 		}
 
 		return 0;
@@ -1007,6 +1276,20 @@ class Query {
 
 		if ( is_a( $object, 'WP_User' ) ) {
 			$object_id = $object->ID;
+		}
+
+		/**
+		 * Non-WP query loops (ACF, Meta Box, Woo Cart, etc.)
+		 *
+		 * @since 1.9.1.1
+		 */
+		if ( ! $object_id ) {
+			$any          = self::is_any_looping( $query_id );
+			$query_object = self::get_query_object( $any );
+
+			if ( is_a( $query_object, 'Bricks\Query' ) ) {
+				$object_id = $query_object->loop_index;
+			}
 		}
 
 		// @see: https://academy.bricksbuilder.io/article/filter-bricks-query-loop_object_id/
@@ -1302,10 +1585,11 @@ class Query {
 	 * @since 1.8
 	 */
 	public static function archive_query_supported_object_types() {
+		// @since 1.9.1 - Only post query should be supported (WP_Query)
 		$object_types = [
 			'post',
-			'term',
-			'user',
+			// 'term',
+			// 'user',
 		];
 
 		// NOTE: Undocumented

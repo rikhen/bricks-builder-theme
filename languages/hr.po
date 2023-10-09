@@ -9375,7 +9375,7 @@ msgstr "Onemogućite WordPress prilagođena polja u padajućem izborniku"
 #: ../build/bricks/includes/admin/admin-screen-settings.php:652,
 #: ../includes/admin/admin-screen-settings.php:652
 msgid ""
-"Disable for better in-builder performance. Using dynamic data tags like "
+"Set for better in-builder performance. Using dynamic data tags like "
 "{cf_my_wordpress_field} is still possible."
 msgstr ""
 "Onemogući radi boljih performansi programa za izgradnju. Korištenje "

@@ -36,7 +36,7 @@ $controls['border'] = [
 	'css'   => [
 		[
 			'property' => 'border',
-			'selector' => '.bricks-button:not([class*="bricks-background-"]):not([class*="bricks-color-"])',
+			'selector' => '.bricks-button',
 		],
 	],
 ];
@@ -47,7 +47,7 @@ $controls['boxShadow'] = [
 	'css'   => [
 		[
 			'property' => 'box-shadow',
-			'selector' => '.bricks-button:not([class*="bricks-background-"]):not([class*="bricks-color-"])',
+			'selector' => '.bricks-button',
 		],
 	],
 ];

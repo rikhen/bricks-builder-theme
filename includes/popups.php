@@ -99,11 +99,25 @@ class Popups {
 			'placeholder' => esc_html__( 'Backdrop', 'bricks' ) . ' & ESC',
 		];
 
+		// BREAKPOINTS (@since 1.9)
+		$breakpoints         = Breakpoints::get_breakpoints();
+		$breakpoints_options = array_column( $breakpoints, 'label', 'key' );
+
+		self::$controls['popupShowAt'] = [
+			'group'       => 'popup',
+			'type'        => 'select',
+			'label'       => esc_html__( 'Start display at', 'bricks' ),
+			'options'     => $breakpoints_options,
+			'inline'      => true,
+			'small'       => true,
+			'placeholder' => esc_html__( 'Any breakpoint', 'bricks' ),
+		];
+
 		self::$controls['popupZindex'] = [
 			'group'       => 'popup',
 			'label'       => 'Z-index',
 			'type'        => 'number',
-			'large' 		  => true,
+			'large'       => true,
 			'css'         => [
 				[
 					'property' => 'z-index',
@@ -154,10 +168,10 @@ class Popups {
 		];
 
 		self::$controls['popupBackground'] = [
-			'group' => 'popup',
-			'label' => esc_html__( 'Background', 'bricks' ),
-			'type'  => 'background',
-			'css'   => [
+			'group'   => 'popup',
+			'label'   => esc_html__( 'Background', 'bricks' ),
+			'type'    => 'background',
+			'css'     => [
 				[
 					'property' => 'background',
 					'selector' => '&.brx-popup .brx-popup-backdrop',
@@ -169,11 +183,11 @@ class Popups {
 		// Backdrop transition
 
 		self::$controls['popupBackdropTransition'] = [
-			'group'       => 'popup',
-			'label'       => esc_html__( 'Transition', 'bricks' ),
-			'type'        => 'text',
-			'inline'      => true,
-			'css'         => [
+			'group'  => 'popup',
+			'label'  => esc_html__( 'Transition', 'bricks' ),
+			'type'   => 'text',
+			'inline' => true,
+			'css'    => [
 				[
 					'property' => 'transition',
 					'selector' => '&.brx-popup .brx-popup-backdrop',
@@ -390,6 +404,41 @@ class Popups {
 			'data-popup-id' => $popup_id,
 			'class'         => [ 'brx-popup', "brxe-popup-{$popup_id}" ],
 		];
+
+		/**
+		 * STEP: Set the show at 'width' according to the selected breakpoint
+		 *
+		 * To hide popup on certain breakpoints.
+		 *
+		 * @since 1.9
+		 */
+		if ( isset( $popup_template_settings['popupShowAt'] ) ) {
+			$breakpoint_key = $popup_template_settings['popupShowAt'];
+			$breakpoint     = Breakpoints::get_breakpoint_by( 'key', $breakpoint_key );
+
+			if ( $breakpoint ) {
+				$width = isset( $breakpoint['width'] ) ? $breakpoint['width'] : null;
+
+				// Is base breakpoint
+				if ( isset( $breakpoint['base'] ) ) {
+					$breakpoints = Breakpoints::$breakpoints;
+
+					foreach ( $breakpoints as $index => $bp ) {
+						if ( $bp['key'] === $breakpoint['key'] && $index === 0 ) {
+							$next_breakpoint = isset( $breakpoints[ $index + 1 ] ) ? $breakpoints[ $index + 1 ] : null;
+
+							if ( isset( $next_breakpoint['width'] ) ) {
+								$width = Breakpoints::$is_mobile_first ? null : $next_breakpoint['width'] + 1;
+							}
+						}
+					}
+				}
+
+				if ( $width ) {
+					$attributes['data-popup-show-at'] = $width;
+				}
+			}
+		}
 
 		// Add popup loop attributes for JavaScript logic (@since 1.7.1)
 		$looping_query_id = Query::is_any_looping();

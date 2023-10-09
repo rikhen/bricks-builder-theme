@@ -19,7 +19,7 @@ class Frontend {
 
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_inline_css' ], 11 );
-		add_action( 'wp_footer', [ $this, 'enqueue_footer_inline_css'] );
+		add_action( 'wp_footer', [ $this, 'enqueue_footer_inline_css' ] );
 
 		add_action( 'bricks_after_site_wrapper', [ $this, 'one_page_navigation_wrapper' ] );
 
@@ -372,6 +372,11 @@ class Frontend {
 			wp_add_inline_style( 'bricks-frontend-inline', 'html {scroll-behavior: smooth}' );
 		}
 
+		// Bricks settings: AJAX Hide View Cart Button (@since 1.9)
+		if ( WooCommerce::is_woocommerce_active() && Database::get_setting( 'woocommerceAjaxHideViewCart' ) ) {
+			wp_add_inline_style( 'bricks-frontend-inline', '.added_to_cart.wc-forward {display: none}' );
+		}
+
 		// CSS loading method: Inline styles (= default)
 		if ( Database::get_setting( 'cssLoading' ) !== 'file' ) {
 			wp_add_inline_style( 'bricks-frontend-inline', Assets::generate_inline_css() );
@@ -406,7 +411,7 @@ class Frontend {
 
 		if ( $global_classes ) {
 			wp_register_style( 'bricks-global-classes-inline', false );
-			wp_enqueue_style( 'bricks-global-classes-inline');
+			wp_enqueue_style( 'bricks-global-classes-inline' );
 			wp_add_inline_style( 'bricks-global-classes-inline', $global_classes );
 		}
 
@@ -416,7 +421,7 @@ class Frontend {
 		if ( $inline_css_dynamic_data ) {
 			// Replace for AJAX pagination (see frontend.js #bricks-dynamic-data)
 			wp_register_style( 'bricks-dynamic-data', false );
-			wp_enqueue_style( 'bricks-dynamic-data');
+			wp_enqueue_style( 'bricks-dynamic-data' );
 			wp_add_inline_style( 'bricks-dynamic-data', $inline_css_dynamic_data );
 		}
 	}
@@ -508,7 +513,7 @@ class Frontend {
 		 *
 		 * @since 1.7.1
 		 */
-		if ( ! isset( $element['staticArea'] ) &&  ! $element_instance->is_frontend && ! Query::get_loop_index() ) {
+		if ( ! isset( $element['staticArea'] ) && ! $element_instance->is_frontend && ! Query::get_loop_index() ) {
 			return '<div class="brx-nestable-children-placeholder"></div>';
 		}
 
@@ -641,7 +646,7 @@ class Frontend {
 		}
 
 		// Check: Lazy load disabled
-		if ( isset( Database::$global_settings['disableLazyLoad'] ) ) {
+		if ( isset( Database::$global_settings['disableLazyLoad'] ) || isset( Database::$page_settings['disableLazyLoad'] ) ) {
 			return $attr;
 		}
 
@@ -789,12 +794,9 @@ class Frontend {
 	 */
 	public static function render_content( $bricks_data = [], $attributes = [], $html_after_begin = '', $html_before_end = '', $tag = 'main' ) {
 		// Merge custom attributes with default attributes ('id')
-		$attributes = array_merge(
-			[
-				'id' => 'brx-content',
-			],
-			$attributes
-		);
+		if ( is_array( $attributes ) ) {
+			$attributes = array_merge( [ 'id' => 'brx-content' ], $attributes );
+		}
 
 		// Return: Popup template preview
 		if ( Templates::get_template_type() === 'popup' ) {
@@ -806,7 +808,9 @@ class Frontend {
 
 		$attributes = Helpers::stringify_html_attributes( $attributes );
 
-		echo "<{$tag} {$attributes}>";
+		if ( $tag ) {
+			echo "<{$tag} {$attributes}>";
+		}
 
 		// https://academy.bricksbuilder.io/article/filter-bricks-content-html_after_begin/
 		$html_after_begin = apply_filters( 'bricks/content/html_after_begin', $html_after_begin, $bricks_data, $attributes, $tag );
@@ -826,7 +830,9 @@ class Frontend {
 			echo $html_before_end;
 		}
 
-		echo "</{$tag}>";
+		if ( $tag ) {
+			echo "</{$tag}>";
+		}
 	}
 
 	/**

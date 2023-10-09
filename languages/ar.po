@@ -9060,7 +9060,7 @@ msgstr "تعطيل حقول WordPress المخصصة في القائمة الم�
 #: ../build/bricks/includes/admin/admin-screen-settings.php:652,
 #: ../includes/admin/admin-screen-settings.php:652
 msgid ""
-"Disable for better in-builder performance. Using dynamic data tags like "
+"Set for better in-builder performance. Using dynamic data tags like "
 "{cf_my_wordpress_field} is still possible."
 msgstr ""
 "تعطيل للحصول على أداء أفضل داخل البناء. لا يزال استخدام علامات البيانات "

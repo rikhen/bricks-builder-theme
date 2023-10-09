@@ -28,11 +28,11 @@ class Element_Countdown extends Element {
 		];
 
 		$this->controls['timezone'] = [
-      'tab' => 'content',
-      'label' => esc_html__( 'Time zone', 'bricks' ),
-      'type' => 'select',
-      'options' => [
-        'UTC-12:00' => 'UTC-12:00',
+			'tab'         => 'content',
+			'label'       => esc_html__( 'Time zone', 'bricks' ),
+			'type'        => 'select',
+			'options'     => [
+				'UTC-12:00' => 'UTC-12:00',
 				'UTC-11:00' => 'UTC-11:00',
 				'UTC-10:00' => 'UTC-10:00',
 				'UTC-09:30' => 'UTC-09:30',
@@ -71,10 +71,10 @@ class Element_Countdown extends Element {
 				'UTC+12:45' => 'UTC+12:45',
 				'UTC+13:00' => 'UTC+13:00',
 				'UTC+14:00' => 'UTC+14:00',
-      ],
-      'inline'      => true,
-      'placeholder' => 'UTC+00',
-    ];
+			],
+			'inline'      => true,
+			'placeholder' => 'UTC+00',
+		];
 
 		$this->controls['action'] = [
 			'label'       => esc_html__( 'Date Reached', 'bricks' ),
@@ -264,12 +264,28 @@ class Element_Countdown extends Element {
 		$date        = ! empty( $settings['date'] ) ? $settings['date'] : false;
 		$fields      = ! empty( $settings['fields'] ) ? $settings['fields'] : false;
 		$action      = ! empty( $settings['action'] ) ? $settings['action'] : 'countdown';
-		$action_text = ! empty( $settings['actionText'] ) ? $settings['actionText'] : '';
+		$action_text = ! empty( $settings['actionText'] ) ? $this->render_dynamic_data( $settings['actionText'] ) : '';
 		$timezone    = ! empty( $settings['timezone'] ) ? $settings['timezone'] : 'UTC+00:00';
 
 		if ( ! $date || ! $fields ) {
 			return $this->render_element_placeholder( [ 'title' => esc_html__( 'No date/fields set.', 'bricks' ) ] );
 		}
+
+		// Render dynamic data for prefix, format, suffix fields (@since 1.9.1)
+		$keys_to_check = [ 'prefix', 'format', 'suffix' ];
+
+		$fields = array_map(
+			function( $field ) use ( $keys_to_check ) {
+				$keys_to_render = array_intersect( array_keys( $field ), $keys_to_check );
+
+				foreach ( $keys_to_render as $key ) {
+					$field[ $key ] = $this->render_dynamic_data( $field[ $key ] );
+				}
+
+				return $field;
+			},
+			$fields
+		);
 
 		$this->set_attribute(
 			'_root',

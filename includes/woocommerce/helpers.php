@@ -11,7 +11,7 @@ class Woocommerce_Helpers {
 	 */
 	public static function get_product_query_controls( $args = false ) {
 		$query_controls = [
-			'posts_per_page' => [
+			'posts_per_page'        => [
 				'tab'   => 'content',
 				'label' => esc_html__( 'Products per page', 'bricks' ),
 				'type'  => 'number',
@@ -19,7 +19,7 @@ class Woocommerce_Helpers {
 				'step'  => 1,
 			],
 
-			'orderby'        => [
+			'orderby'               => [
 				'tab'         => 'content',
 				'label'       => esc_html__( 'Order by', 'bricks' ),
 				'type'        => 'select',
@@ -38,7 +38,7 @@ class Woocommerce_Helpers {
 				'placeholder' => esc_html__( 'Date', 'bricks' ),
 			],
 
-			'order'          => [
+			'order'                 => [
 				'tab'         => 'content',
 				'label'       => esc_html__( 'Order', 'bricks' ),
 				'type'        => 'select',
@@ -50,7 +50,7 @@ class Woocommerce_Helpers {
 				'placeholder' => esc_html__( 'Descending', 'bricks' ),
 			],
 
-			'productType'    => [
+			'productType'           => [
 				'tab'         => 'content',
 				'label'       => esc_html__( 'Product type', 'bricks' ),
 				'type'        => 'select',
@@ -59,7 +59,7 @@ class Woocommerce_Helpers {
 				'placeholder' => esc_html__( 'Select product type', 'bricks' ),
 			],
 
-			'include'        => [
+			'include'               => [
 				'tab'         => 'content',
 				'label'       => esc_html__( 'Include', 'bricks' ),
 				'type'        => 'select',
@@ -72,7 +72,7 @@ class Woocommerce_Helpers {
 				'placeholder' => esc_html__( 'Select products', 'bricks' ),
 			],
 
-			'exclude'        => [
+			'exclude'               => [
 				'tab'         => 'content',
 				'label'       => esc_html__( 'Exclude', 'bricks' ),
 				'type'        => 'select',
@@ -85,7 +85,7 @@ class Woocommerce_Helpers {
 				'placeholder' => esc_html__( 'Select products', 'bricks' ),
 			],
 
-			'categories'     => [
+			'categories'            => [
 				'tab'      => 'content',
 				'label'    => esc_html__( 'Product categories', 'bricks' ),
 				'type'     => 'select',
@@ -93,7 +93,7 @@ class Woocommerce_Helpers {
 				'multiple' => true,
 			],
 
-			'tags'           => [
+			'tags'                  => [
 				'tab'      => 'content',
 				'label'    => esc_html__( 'Product tags', 'bricks' ),
 				'type'     => 'select',
@@ -101,22 +101,29 @@ class Woocommerce_Helpers {
 				'multiple' => true,
 			],
 
-			'onSale'         => [
+			'onSale'                => [
 				'tab'   => 'content',
 				'label' => esc_html__( 'On sale', 'bricks' ),
 				'type'  => 'checkbox',
 			],
 
-			'featured'       => [
+			'featured'              => [
 				'tab'   => 'content',
 				'label' => esc_html__( 'Featured', 'bricks' ),
 				'type'  => 'checkbox',
 			],
 
-			'hideOutOfStock' => [
+			'hideOutOfStock'        => [
 				'tab'   => 'content',
 				'label' => esc_html__( 'Hide out of stock', 'bricks' ),
 				'type'  => 'checkbox',
+			],
+
+			'is_archive_main_query' => [
+				'tab'    => 'content',
+				'label'  => esc_html__( 'Is main query', 'bricks' ),
+				'type'   => 'checkbox',
+				'inline' => true,
 			],
 		];
 
@@ -823,12 +830,12 @@ class Woocommerce_Helpers {
 		$hooks['content-single-product'] = [
 			'woocommerce_before_single_product'         => [
 				'label'   => esc_html( 'Before single product', 'bricks' ),
-					'actions' => [
-					// [
-					// 	// Notices should be handled by the new WooCommerce notice element.
-					// 	'callback' => 'woocommerce_output_all_notices',
-					// 	'priority' => 10
-					// ],
+				'actions' => [
+				// [
+				// Notices should be handled by the new WooCommerce notice element.
+				// 'callback' => 'woocommerce_output_all_notices',
+				// 'priority' => 10
+				// ],
 				],
 			],
 			'woocommerce_before_single_product_summary' => [
@@ -944,7 +951,7 @@ class Woocommerce_Helpers {
 				'label'   => esc_html( 'Before shop loop', 'bricks' ),
 				'actions' => [
 					// [
-					// 	// Notices should be handled by the new WooCommerce notice element.
+					// Notices should be handled by the new WooCommerce notice element.
 					// 'callback' => 'woocommerce_output_all_notices',
 					// 'priority' => 10
 					// ],
@@ -988,9 +995,9 @@ class Woocommerce_Helpers {
 				'label'   => esc_html( 'Before cart', 'bricks' ),
 				'actions' => [
 					// [
-					// 	// Notices should be handled by the new WooCommerce notice element.
-					// 	'callback' => 'woocommerce_output_all_notices',
-					// 	'priority' => 10
+					// Notices should be handled by the new WooCommerce notice element.
+					// 'callback' => 'woocommerce_output_all_notices',
+					// 'priority' => 10
 					// ],
 				],
 			],
@@ -1002,7 +1009,7 @@ class Woocommerce_Helpers {
 				'label'   => esc_html( 'Cart is empty', 'bricks' ),
 				'actions' => [
 					// [
-					// 	// Notices should be handled by the new WooCommerce notice element.
+					// Notices should be handled by the new WooCommerce notice element.
 					// 'callback' => 'woocommerce_output_all_notices',
 					// 'priority' => 5
 					// ],

@@ -1225,7 +1225,7 @@ class Element_Video extends Element {
 		}
 
 		// STEP: Set image size
-		$image['size'] = isset( $image['size'] ) &&  ! empty( $image['size'] ) ? $image['size'] : BRICKS_DEFAULT_IMAGE_SIZE;
+		$image['size'] = isset( $image['size'] ) && ! empty( $image['size'] ) ? $image['size'] : BRICKS_DEFAULT_IMAGE_SIZE;
 
 		// STEP: Image ID or URL from dynamic data
 		if ( ! empty( $image['useDynamicData'] ) ) {

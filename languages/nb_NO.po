@@ -9182,7 +9182,7 @@ msgstr "Deaktiver egendefinerte WordPress-felt i rullegardinmenyen"
 #: ../build/bricks/includes/admin/admin-screen-settings.php:652,
 #: ../includes/admin/admin-screen-settings.php:652
 msgid ""
-"Disable for better in-builder performance. Using dynamic data tags like "
+"Set for better in-builder performance. Using dynamic data tags like "
 "{cf_my_wordpress_field} is still possible."
 msgstr ""
 "Deaktiver for å få bedre ytelse under bygging. Det er fortsatt mulig å bruke "

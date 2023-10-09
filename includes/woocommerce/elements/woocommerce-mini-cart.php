@@ -404,16 +404,16 @@ class Woocommerce_Mini_Cart extends Element {
 		];
 
 		$this->controls['cartDetailsPosition'] = [
-			'tab'         => 'style',
-			'group'       => 'cartDetails',
-			'type'        => 'dimensions',
-			'label'       => esc_html__( 'Position', 'bricks' ),
-			'css'         => [
+			'tab'      => 'style',
+			'group'    => 'cartDetails',
+			'type'     => 'dimensions',
+			'label'    => esc_html__( 'Position', 'bricks' ),
+			'css'      => [
 				[
 					'selector' => '.cart-detail',
 				],
 			],
-			'required'    => [
+			'required' => [
 				[ 'hideCartDetails', '=', '' ],
 				[ 'cartDetailsOffCanvas', '=', '' ],
 			],

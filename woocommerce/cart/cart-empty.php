@@ -41,27 +41,32 @@ if ( $template_id ) {
 	if ( is_array( $elements ) && isset( $elements[0] ) ) {
 		$element_id = $elements[0]['id'];
 
-		add_filter( 'bricks/element/render_attributes', function( $attributes, $key, $element ) use ( $element_id ) {
-			if ( $element->id !== $element_id ) {
+		add_filter(
+			'bricks/element/render_attributes',
+			function( $attributes, $key, $element ) use ( $element_id ) {
+				if ( $element->id !== $element_id ) {
+					return $attributes;
+				}
+
+				if ( isset( $attributes['_root']['class'] ) ) {
+					$attributes['_root']['class'][] = 'cart-empty';
+					/**
+					 * As we removed wc_empty_cart_message on wooocommerce_cart_is_empty hook, we need to add the class here. (WooCommerce 8.0)
+					 * Remove the wc_empty_cart_message is for the flexibility of the user to use the template as they want.
+					 *
+					 * @see Woocommerce_Helpers::repeated_wc_template_hooks()
+					 * @since 1.8.6
+					 */
+					$attributes['_root']['class'][] = 'wc-empty-cart-message';
+				} else {
+					$attributes['_root']['class'] = [ 'cart-empty', 'wc-empty-cart-message' ];
+				}
+
 				return $attributes;
-			}
-
-			if ( isset( $attributes['_root']['class'] ) ) {
-				$attributes['_root']['class'][] = 'cart-empty';
-				/**
-				 * As we removed wc_empty_cart_message on wooocommerce_cart_is_empty hook, we need to add the class here. (WooCommerce 8.0)
-				 * Remove the wc_empty_cart_message is for the flexibility of the user to use the template as they want.
-				 *
-				 * @see Woocommerce_Helpers::repeated_wc_template_hooks()
-				 * @since 1.8.6
-				 */
-				$attributes['_root']['class'][] = 'wc-empty-cart-message';
-			} else {
-				$attributes['_root']['class'] = ['cart-empty', 'wc-empty-cart-message'];
-			}
-
-			return $attributes;
-		}, 10, 3 );
+			},
+			10,
+			3
+		);
 	}
 
 	$template_data = Bricks\Woocommerce::get_template_data_by_type( 'wc_cart_empty' );
@@ -85,7 +90,7 @@ if ( $template_id ) {
 	) {
 		// $inline_css = Bricks\Assets::generate_inline_css();
 		$inline_css  = Bricks\Assets::$inline_css['global_classes'];
-		$inline_css .= Bricks\Assets::$inline_css["template_$template_id"];
+		$inline_css .= Bricks\Assets::$inline_css[ "template_$template_id" ];
 
 		echo "<style id=\"bricks-cart-empty-inline-css\">$inline_css</style>";
 	}

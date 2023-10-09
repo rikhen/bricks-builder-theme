@@ -477,6 +477,17 @@ class Helpers {
 			return esc_html__( 'There is no excerpt because this is a protected post.', 'bricks' );
 		}
 
+		/**
+		 * Relevanssi compatibility - the modified excerpt is stored in the global post_excerpt field
+		 * Bricks will not trim the Relevanssi excerpt any further
+		 *
+		 * @since 1.9.1
+		 */
+		if ( is_search() && function_exists( 'relevanssi_do_excerpt' ) ) {
+			global $post;
+			return $post->post_excerpt;
+		}
+
 		$text = $post->post_excerpt;
 
 		// No excerpt, generate one
@@ -575,7 +586,13 @@ class Helpers {
 
 		$posts_navigation_html = '<div class="bricks-pagination" role="navigation" aria-label="' . esc_attr__( 'Pagination', 'bricks' ) . '">';
 
-		$posts_navigation_html .= paginate_links( $args );
+		$pagination_links = paginate_links( $args );
+
+		// Adding 'aria-label' attributes to previous & next links (@since 1.9)
+		$pagination_links = str_replace( '<a class="prev page-numbers"', '<a class="prev page-numbers" aria-label="' . esc_attr__( 'Previous page', 'bricks' ) . '"', $pagination_links );
+		$pagination_links = str_replace( '<a class="next page-numbers"', '<a class="next page-numbers" aria-label="' . esc_attr__( 'Next page', 'bricks' ) . '"', $pagination_links );
+
+		$posts_navigation_html .= $pagination_links;
 
 		$posts_navigation_html .= '</div>';
 
@@ -599,12 +616,12 @@ class Helpers {
 		);
 
 		// Wrap each <a> in a <li>
-    $pagination_html = str_replace( '<a', '<li><a', $pagination_html );
-    $pagination_html = str_replace( '</a>', '</a></li>', $pagination_html );
+		$pagination_html = str_replace( '<a', '<li><a', $pagination_html );
+		$pagination_html = str_replace( '</a>', '</a></li>', $pagination_html );
 
 		// Wrap each <span> (current page) in a <li>
 		$pagination_html = str_replace( '<span', '<li><span', $pagination_html );
-    $pagination_html = str_replace( '</span>', '</span></li>', $pagination_html );
+		$pagination_html = str_replace( '</span>', '</span></li>', $pagination_html );
 
 		return $pagination_html;
 	}
@@ -642,7 +659,7 @@ class Helpers {
 		}
 
 		if ( ! empty( $data['icon-class'] ) ) {
-			$output .= '<i class="' . sanitize_html_class( $data['icon-class'] ) . '"></i>';
+			$output .= '<i class="' . esc_attr( $data['icon-class'] ) . '"></i>';
 		}
 
 		$output .= '<div class="placeholder-inner">';
@@ -1293,21 +1310,24 @@ class Helpers {
 	 * @since 1.4
 	 */
 	public static function get_all_bricks_post_ids( $custom_args = [] ) {
-		$args = array_merge( [
-			'post_type'              => array_keys( self::get_supported_post_types() ),
-			'posts_per_page'         => -1,
-			'post_status'            => 'any',
-			'fields'                 => 'ids',
-			'no_found_rows'          => true,
-			'update_post_term_cache' => false,
-			'meta_query'             => [
-				[
-					'key'     => BRICKS_DB_PAGE_CONTENT,
-					'value'   => '',
-					'compare' => '!=',
+		$args = array_merge(
+			[
+				'post_type'              => array_keys( self::get_supported_post_types() ),
+				'posts_per_page'         => -1,
+				'post_status'            => 'any',
+				'fields'                 => 'ids',
+				'no_found_rows'          => true,
+				'update_post_term_cache' => false,
+				'meta_query'             => [
+					[
+						'key'     => BRICKS_DB_PAGE_CONTENT,
+						'value'   => '',
+						'compare' => '!=',
+					],
 				],
 			],
-		], $custom_args );
+			$custom_args
+		);
 
 		return get_posts( $args );
 	}
@@ -1674,7 +1694,7 @@ class Helpers {
 	 * @since 1.8
 	 *
 	 * @param string $key
-	 * @param array $settings
+	 * @param array  $settings
 	 *
 	 * @return bool
 	 */
@@ -1687,9 +1707,12 @@ class Helpers {
 
 		if ( is_array( $settings ) && count( $settings ) ) {
 			// Search array keys for where starts with $key
-			$setting_keys = array_filter( array_keys( $settings ), function ( $setting_key ) use ( $key ) {
-				return strpos( $setting_key, $key ) === 0;
-			} );
+			$setting_keys = array_filter(
+				array_keys( $settings ),
+				function ( $setting_key ) use ( $key ) {
+					return strpos( $setting_key, $key ) === 0;
+				}
+			);
 
 			if ( count( $setting_keys ) ) {
 				// Assume the first key is the one we're looking for
@@ -1734,7 +1757,7 @@ class Helpers {
 				// Latest posts as front page ($front_page_id === 0)
 				// Check if homepage URL is the same as the URL we are checking after removing trailing slashes, maybe user will use '/' as well
 				else {
-					$set_aria_current = untrailingslashit( home_url('/') ) === untrailingslashit( $url ) || '/' === $url;
+					$set_aria_current = untrailingslashit( home_url( '/' ) ) === untrailingslashit( $url ) || '/' === $url;
 				}
 			}
 
@@ -1743,10 +1766,12 @@ class Helpers {
 				global $wp;
 				$requested_url = trailingslashit( home_url( $wp->request ) );
 
-				// URL begins with one slash (e.g. /category/business/): Add home URL
+				// URL starts with a slash (e.g. /category/business/): Add home URL
 				if ( substr( $url, 0, 1 ) === '/' && substr( $url, 0, 2 ) !== '/' ) {
-					$url = trailingslashit( home_url( $url ) );
+					$url = home_url( $url );
 				}
+
+				$url = trailingslashit( $url );
 
 				$set_aria_current = strcmp( rtrim( $url ), rtrim( $requested_url ) ) === 0;
 			}
@@ -1754,13 +1779,16 @@ class Helpers {
 
 		// Post or page
 		else {
+			// Use current page ID if not a singular post or page (@since 1.9)
+			$current_page_id = is_singular() ? get_the_ID() : get_queried_object_id();
+
 			// Inside query loop
 			if ( Query::is_any_looping() ) {
 				$set_aria_current = $post_id_of_link && $post_id_of_link == get_queried_object_id() && is_singular();
 			}
 
 			// Single post or page
-			elseif ( $post_id_of_link == get_the_ID() ) {
+			elseif ( $post_id_of_link == $current_page_id ) {
 				$set_aria_current = true;
 			}
 
@@ -1809,4 +1837,123 @@ class Helpers {
 		return self::is_post_ancestor( $parent_id, $ancestor_id );
 	}
 
+	/**
+	 * Parse textarea content to account for dynamic data usage
+	 *
+	 * Useful in 'One option / feature per line' situations
+	 *
+	 * Examples: Form element options (Checkbox, Select, Radio) or Pricing Tables (Features)
+	 *
+	 * @since 1.9
+	 *
+	 * @param string $options
+	 * @return array
+	 */
+	public static function parse_textarea_options( $options ) {
+		// Render possible dynamic data tags within the options string
+		$options = bricks_render_dynamic_data( $options );
+
+		// Strip tags like <p> or <br> when using ACF textarea or WYSIWYG fields
+		$options = strip_tags( $options );
+
+		// At this point the parsed value might contain a trailing line break – remove it
+		$options = rtrim( $options );
+
+		// Finally return an array of options
+		return explode( "\n", $options );
+	}
+
+	/**
+	 * Populate query_vars to be used in Bricks template preview based on "Populate content" settings
+	 *
+	 * @since 1.9.1
+	 */
+	public static function get_template_preview_query_vars( $post_id ) {
+		if ( ! $post_id ) {
+			return [];
+		}
+
+		$query_args = [];
+
+		$template_settings     = self::get_template_settings( $post_id );
+		$template_preview_type = self::get_template_setting( 'templatePreviewType', $post_id );
+
+		// @since 1.8 - Set preview type if direct edit page or post with Bricks (#861m48kv4)
+		if ( bricks_is_builder_call() && empty( $template_settings ) && ! self::is_bricks_template( $post_id ) ) {
+			$template_preview_type = 'direct-edit';
+		}
+
+		switch ( $template_preview_type ) {
+			// Archive: Recent posts
+			case 'archive-recent-posts':
+				$query_args['post_type'] = 'post';
+				break;
+
+			// Archive: author
+			case 'archive-author':
+				$template_preview_author = self::get_template_setting( 'templatePreviewAuthor', $post_id );
+
+				if ( $template_preview_author ) {
+					$query_args['author'] = $template_preview_author;
+				}
+				break;
+
+			// Author date
+			case 'archive-date':
+				$query_args['year'] = date( 'Y' );
+				break;
+
+			// Archive CPT
+			case 'archive-cpt':
+				$template_preview_post_type = self::get_template_setting( 'templatePreviewPostType', $post_id );
+
+				if ( $template_preview_post_type ) {
+					$query_args['post_type'] = $template_preview_post_type;
+				}
+				break;
+
+			// Archive term
+			case 'archive-term':
+				$template_preview_term_id_parts = isset( $template_settings['templatePreviewTerm'] ) ? explode( '::', $template_settings['templatePreviewTerm'] ) : '';
+				$template_preview_taxnomy       = isset( $template_preview_term_id_parts[0] ) ? $template_preview_term_id_parts[0] : '';
+				$template_preview_term_id       = isset( $template_preview_term_id_parts[1] ) ? $template_preview_term_id_parts[1] : '';
+
+				if ( $template_preview_taxnomy && $template_preview_term_id ) {
+					$query_args['tax_query'] = [
+						[
+							'taxonomy' => $template_preview_taxnomy,
+							'terms'    => $template_preview_term_id,
+							'field'    => 'term_id',
+						],
+					];
+				}
+				break;
+
+			// Search
+			case 'search':
+				$template_preview_search_term = self::get_template_setting( 'templatePreviewSearchTerm', $post_id );
+
+				if ( $template_preview_search_term ) {
+					$query_args['s'] = $template_preview_search_term;
+				}
+				break;
+
+			// Single
+			case 'direct-edit': // Editing template directly
+			case 'single': // (template condition "Content type" = "Single post/page")
+				$template_preview_post_id = self::get_template_setting( 'templatePreviewPostId', $post_id );
+
+				if ( $template_preview_post_id ) {
+					$query_args['p']         = $template_preview_post_id;
+					$query_args['post_type'] = get_post_type( $template_preview_post_id );
+				}
+
+				break;
+		}
+
+		// NOTE: Undocumented
+		$query_args = apply_filters( 'bricks/element/builder_setup_query', $query_args, $post_id );
+
+		return $query_args;
+	}
 }

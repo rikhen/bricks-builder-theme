@@ -443,7 +443,7 @@ class Woocommerce_Checkout_Thankyou extends Element {
 				?>
 				<?php if ( $thankyou_message ) { ?>
 				<p class="woocommerce-notice woocommerce-notice--success woocommerce-thankyou-order-received">
-					<?php echo apply_filters( 'woocommerce_thankyou_order_received_text', esc_html( $thankyou_message ), null ); ?>
+					<?php echo apply_filters( 'woocommerce_thankyou_order_received_text', esc_html( $thankyou_message ), false ); ?>
 				</p>
 				<?php } ?>
 			<?php } ?>

@@ -9106,7 +9106,7 @@ msgstr "禁用 WordPress 自定义字段在下拉菜单中显示"
 #: ../build/bricks/includes/admin/admin-screen-settings.php:652,
 #: ../includes/admin/admin-screen-settings.php:652
 msgid ""
-"Disable for better in-builder performance. Using dynamic data tags like "
+"Set for better in-builder performance. Using dynamic data tags like "
 "{cf_my_wordpress_field} is still possible."
 msgstr ""
 "为了更好的构建器性能而禁用。仍然可以使用像{cf_my_wordpress_field}的动态标签。"

@@ -94,6 +94,18 @@ class Element_Offcanvas extends Element {
 			'hasDynamicData' => false,
 			'placeholder'    => esc_html__( 'Offcanvas', 'bricks' ),
 		];
+
+		$this->controls['closeOn'] = [
+			'label'       => esc_html__( 'Close on', 'bricks' ),
+			'type'        => 'select',
+			'inline'      => true,
+			'options'     => [
+				'backdrop' => esc_html__( 'Backdrop', 'bricks' ) . ' (' . esc_html__( 'Click', 'bricks' ) . ')',
+				'esc'      => 'ESC (' . esc_html__( 'Key', 'bricks' ) . ')',
+				'none'     => esc_html__( 'None', 'bricks' ),
+			],
+			'placeholder' => esc_html__( 'Backdrop', 'bricks' ) . ' & ESC',
+		];
 	}
 
 	public function get_nestable_children() {
@@ -145,6 +157,11 @@ class Element_Offcanvas extends Element {
 
 		if ( ! empty( $settings['noScrollBody'] ) ) {
 			$this->set_attribute( '_root', 'data-no-scroll', 'true' );
+		}
+
+		// Close on (backdrop, esc)
+		if ( isset( $settings['closeOn'] ) ) {
+			$this->set_attribute( '_root', 'data-close-on', esc_attr( $settings['closeOn'] ) );
 		}
 
 		if ( ! empty( $settings['effect'] ) ) {

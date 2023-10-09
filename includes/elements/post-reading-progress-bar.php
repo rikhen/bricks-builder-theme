@@ -34,49 +34,49 @@ class Element_Post_Reading_Progress_Bar extends Element {
 		];
 
 		$this->controls['barHeight'] = [
-      'label'       => esc_html__( 'Bar height', 'bricks' ),
-      'type'        => 'number',
+			'label'       => esc_html__( 'Bar height', 'bricks' ),
+			'type'        => 'number',
 			'min'         => 0,
 			'units'       => true,
 			'large'       => true,
 			'placeholder' => '12px',
-      'css'         => [
-        [
-          'property' => 'height',
+			'css'         => [
+				[
+					'property' => 'height',
 					'selector' => '',
-        ],
-      ],
-    ];
+				],
+			],
+		];
 
 		$this->controls['barColor'] = [
-      'label' => esc_html__( 'Bar color', 'bricks' ),
-      'type'  => 'color',
-      'css'   => [
-        [
-          'property' => 'background-color',
-					'selector' => '&::-webkit-progress-value',
-        ],
+			'label' => esc_html__( 'Bar color', 'bricks' ),
+			'type'  => 'color',
+			'css'   => [
 				[
-          'property' => 'background-color',
+					'property' => 'background-color',
+					'selector' => '&::-webkit-progress-value',
+				],
+				[
+					'property' => 'background-color',
 					'selector' => '&::-moz-progress-bar',
-        ],
-      ],
-    ];
+				],
+			],
+		];
 
 		$this->controls['barBackgroundColor'] = [
-      'label' => esc_html__( 'Bar background color', 'bricks' ),
-      'type'  => 'color',
-      'css'   => [
-        [
-          'property' => 'background-color',
-					'selector' => '&::-webkit-progress-bar',
-        ],
+			'label' => esc_html__( 'Bar background color', 'bricks' ),
+			'type'  => 'color',
+			'css'   => [
 				[
-          'property' => 'background-color',
+					'property' => 'background-color',
+					'selector' => '&::-webkit-progress-bar',
+				],
+				[
+					'property' => 'background-color',
 					'selector' => '',
-        ],
-      ],
-    ];
+				],
+			],
+		];
 	}
 
 	public function render() {

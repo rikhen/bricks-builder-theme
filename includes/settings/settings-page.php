@@ -63,6 +63,12 @@ class Settings_Page extends Settings_Base {
 				'type'  => 'checkbox',
 				'label' => esc_html__( 'Disable footer', 'bricks' ),
 			];
+
+			$this->controls['disableLazyLoad'] = [
+				'group' => 'general',
+				'type'  => 'checkbox',
+				'label' => esc_html__( 'Disable lazy load', 'bricks' ),
+			];
 		}
 
 		// Add Theme Styles "General" controls to page settings

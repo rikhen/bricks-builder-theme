@@ -57,12 +57,12 @@ class Woocommerce_Notice extends Element {
 		];
 
 		$sections = [
-			'layout'  => [
+			'layout' => [
 				'success' => '.woocommerce-message',
 				'notice'  => '.woocommerce-info',
 				'error'   => '.woocommerce-error',
 			],
-			'link' => [
+			'link'   => [
 				'success' => '.woocommerce-message a, .woocommerce-message a.button',
 				'notice'  => '.woocommerce-info a, .woocommerce-info a.button',
 				'error'   => '.woocommerce-error a, .woocommerce-error a.button',
@@ -236,7 +236,7 @@ class Woocommerce_Notice extends Element {
 				unset( $dummy_messages['success'], $dummy_messages['error'] );
 				break;
 
-				case 'error':
+			case 'error':
 				unset( $dummy_messages['success'], $dummy_messages['notice'] );
 				break;
 

@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
  *
  * @since 1.0
  */
-define( 'BRICKS_VERSION', '1.8.6' );
+define( 'BRICKS_VERSION', '1.9.1.1' );
 define( 'BRICKS_NAME', 'Bricks' );
 define( 'BRICKS_TEMP_DIR', 'bricks-temp' ); // Template import/export (JSON & ZIP)
 define( 'BRICKS_PATH', trailingslashit( get_template_directory() ) );    // require_once files

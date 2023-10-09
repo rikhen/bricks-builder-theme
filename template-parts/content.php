@@ -4,30 +4,34 @@ ob_start();
 echo '<div class="brxe-container">';
 
 if ( have_posts() ) {
-	$post_content = new Bricks\Element_Posts(
-		[
-			'settings' => [
-				'layout'          => 'grid',
-				'columns'         => 2,
-				'gutter'          => 30,
-				'imageLink'       => true,
-				'fields'          => [
-					[
-						'dynamicData' => '{post_title:link}',
-						'tag'         => 'h3',
-					],
-					[
-						'dynamicData' => '{post_date}',
-					],
-					[
-						'dynamicData' => '{post_excerpt:20}',
-					],
+	$settings = [
+		'settings' => [
+			'layout'          => 'grid',
+			'columns'         => 2,
+			'gutter'          => 30,
+			'imageLink'       => true,
+			'fields'          => [
+				[
+					'dynamicData' => '{post_title:link}',
+					'tag'         => 'h3',
 				],
-				'postsNavigation' => true,
-			]
+				[
+					'dynamicData' => '{post_date}',
+				],
+				[
+					'dynamicData' => '{post_excerpt:20}',
+				],
+			],
+			'postsNavigation' => true,
 		]
-	);
+	];
 
+	// Set is_archive_main_query for search page so it will use main query result (@since 1.9.1)
+	if ( is_search() ) {
+		$settings['settings']['query']['is_archive_main_query'] = true;
+	}
+
+	$post_content = new Bricks\Element_Posts( $settings );
 	$post_content->load();
 	$post_content->init();
 }

@@ -63,7 +63,7 @@ class Assets_Files {
 		}
 
 		// One-click update
-		else if ( isset( $hook_extra['theme'] ) ? $hook_extra['theme'] === 'bricks' : false ) {
+		elseif ( isset( $hook_extra['theme'] ) ? $hook_extra['theme'] === 'bricks' : false ) {
 			$is_bricks = true;
 		}
 
@@ -90,7 +90,7 @@ class Assets_Files {
 		// Regenerate CSS files immediately after theme update
 		if ( ! wp_next_scheduled( 'bricks_regenerate_css_files' ) ) {
 			$timestamp = time() + 1;
-			$hook = 'bricks_regenerate_css_files';
+			$hook      = 'bricks_regenerate_css_files';
 			wp_schedule_single_event( $timestamp, $hook );
 		}
 	}
@@ -101,7 +101,7 @@ class Assets_Files {
 	 * @since 1.8.1
 	 */
 	public static function regenerate_css_files() {
-		$css_files = self::get_css_files_list( true );
+		$css_files                = self::get_css_files_list( true );
 		$generated_css_file_names = [];
 
 		if ( is_array( $css_files ) ) {
@@ -457,10 +457,10 @@ class Assets_Files {
 	 *
 	 * @param string $data The type of CSS file to generate: Color palette, Theme style, individual post ID, etc.
 	 * @param string $index The index of the CSS file to generate (e.g. 0 = color palette, 1 = theme style, etc.)
-	 * @param bool $return Whether to return the generated CSS file name or not
+	 * @param bool   $return Whether to return the generated CSS file name or not
 	 *
-	 * Trigger 1: Click on "Regenerate CSS files" button under "CSS loading method - External Files" in Bricks settings.
-	 * Trigger 2: Edit default breakpoint 'width' (@since 1.5.1)
+	 *   Trigger 1: Click on "Regenerate CSS files" button under "CSS loading method - External Files" in Bricks settings.
+	 *   Trigger 2: Edit default breakpoint 'width' (@since 1.5.1)
 	 */
 	public static function regenerate_css_file( $data = false, $index = false, $return = false ) {
 		if ( isset( $_POST['data'] ) ) {

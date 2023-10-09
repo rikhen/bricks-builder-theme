@@ -264,7 +264,8 @@ class Ajax {
 	 */
 	public static function render_element( $element ) {
 		// Check: AJAX, REST API or builder
-		$is_ajax = false;
+		$is_ajax      = false;
+		$loop_element = false;
 
 		// AJAX
 		if ( bricks_is_ajax_call() && isset( $_POST ) ) {
@@ -365,17 +366,14 @@ class Ajax {
 
 		$html = ! empty( $data ) ? Frontend::render_data( $data ) : '';
 
-		wp_send_json_success(
-			[
-				'html' => $html,
-			]
-		);
+		wp_send_json_success( [ 'html' => $html ] );
 	}
 
 	/**
 	 * Get template elements by template ID
 	 *
 	 * To generate global classes CSS in builder.
+	 *
 	 * @since 1.8.2
 	 */
 	public function get_template_elements_by_id() {
@@ -637,10 +635,22 @@ class Ajax {
 
 		$styles = ! empty( $inline_css ) ? "\n<style id=\"bricks-$loop_name\">/* {$loop_name} CSS */\n{$inline_css}</style>\n" : '';
 
-		wp_send_json_success( [
+		$data = [
 			'html'   => $html,
 			'styles' => $styles,
-		] );
+		];
+
+		// Run query to get query results count in builder (@since 1.9.1)
+		$element = ! empty( $_POST['element'] ) ? self::decode( $_POST['element'], false ) : false;
+
+		if ( $element ) {
+			$query               = new Query( $element );
+			$query_results_count = $query->count;
+
+			$data[ "query_results_count:{$element['id']}" ] = $query_results_count;
+		}
+
+		wp_send_json_success( $data );
 	}
 
 	/**
@@ -1253,7 +1263,7 @@ class Ajax {
 		 */
 		global $post;
 		$post_id = $_POST['postId'];
-		$post = get_post( $post_id );
+		$post    = get_post( $post_id );
 		setup_postdata( $post );
 
 		// Get content from custom field
@@ -1300,11 +1310,7 @@ class Ajax {
 		}
 
 		// NOTE: We are not escaping text content since it could contain formatting tags like <strong> (@since 1.5.1 - preview dynamic data)
-		wp_send_json_success(
-			[
-				'content' => $content,
-			]
-		);
+		wp_send_json_success( [ 'content' => $content ] );
 	}
 
 	/**

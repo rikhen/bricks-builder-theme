@@ -219,15 +219,16 @@ class Element_Social_Icons extends Element {
 		$output = "<ul {$this->render_attributes( '_root' )}>";
 
 		foreach ( $icons as $index => $icon ) {
-			$icon_html = ! empty( $icon['icon'] ) ? self::render_icon( $icon['icon'] ) : false;
-			$icon_link = ! empty( $icon['link'] ) ? $icon['link'] : false;
+			$icon_html  = ! empty( $icon['icon'] ) ? self::render_icon( $icon['icon'] ) : false;
+			$icon_link  = ! empty( $icon['link'] ) ? $icon['link'] : false;
+			$icon_label = ! empty( $icon['label'] ) ? $this->render_dynamic_data( $icon['label'] ) : false;
 
 			$this->set_attribute( "li-{$index}", 'class', 'repeater-item' );
 			$this->set_attribute( "li-{$index}", 'class', $icon_link ? 'has-link' : 'no-link' );
 
 			$output .= "<li {$this->render_attributes( "li-{$index}" )}>";
 
-			if ( ! empty( $icon['link'] ) ) {
+			if ( $icon_link ) {
 				$this->set_link_attributes( "a-{$index}", $icon['link'] );
 
 				$output .= "<a {$this->render_attributes( "a-{$index}" )}>";
@@ -237,11 +238,11 @@ class Element_Social_Icons extends Element {
 				$output .= $icon_html;
 			}
 
-			if ( ! empty( $icon['label'] ) ) {
-				$output .= "<span>{$icon['label']}</span>";
+			if ( ! empty( $icon_label ) ) {
+				$output .= "<span>{$icon_label}</span>";
 			}
 
-			if ( ! empty( $icon['link'] ) ) {
+			if ( $icon_link ) {
 				$output .= '</a>';
 			}
 

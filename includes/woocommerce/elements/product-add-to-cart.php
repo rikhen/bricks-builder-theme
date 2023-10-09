@@ -234,12 +234,40 @@ class Product_Add_To_Cart extends Element {
 		$this->controls['buttonText'] = [
 			'tab'         => 'content',
 			'group'       => 'button',
-			'tooltip'     => [
-				'content'  => esc_html__( 'Text', 'bricks' ),
-				'position' => 'top-left',
-			],
 			'type'        => 'text',
+			'inline'      => true,
+			'label'       => esc_html__( 'Simple product', 'bricks' ),
 			'placeholder' => esc_html__( 'Add to cart', 'bricks' ),
+		];
+
+		// (@since 1.9)
+		$this->controls['variableText'] = [
+			'tab'         => 'content',
+			'group'       => 'button',
+			'type'        => 'text',
+			'inline'      => true,
+			'label'       => esc_html__( 'Variable product', 'bricks' ),
+			'placeholder' => esc_html__( 'Select options', 'bricks' ),
+		];
+
+		// (@since 1.9)
+		$this->controls['groupedText'] = [
+			'tab'         => 'content',
+			'group'       => 'button',
+			'type'        => 'text',
+			'inline'      => true,
+			'label'       => esc_html__( 'Grouped product', 'bricks' ),
+			'placeholder' => esc_html__( 'View products', 'bricks' ),
+		];
+
+		// (@since 1.9)
+		$this->controls['externalText'] = [
+			'tab'         => 'content',
+			'group'       => 'button',
+			'type'        => 'text',
+			'inline'      => true,
+			'label'       => esc_html__( 'External product', 'bricks' ),
+			'placeholder' => esc_html__( 'Buy product', 'bricks' ),
 		];
 
 		$this->controls['buttonPadding'] = [
@@ -319,11 +347,11 @@ class Product_Add_To_Cart extends Element {
 		];
 
 		$this->controls['iconTypography'] = [
-			'tab'     => 'content',
-			'group'   => 'button',
-			'label'   => esc_html__( 'Icon typography', 'bricks' ),
-			'type'    => 'typography',
-			'css'     => [
+			'tab'   => 'content',
+			'group' => 'button',
+			'label' => esc_html__( 'Icon typography', 'bricks' ),
+			'type'  => 'typography',
+			'css'   => [
 				[
 					'property' => 'font',
 					'selector' => '.icon',
@@ -342,8 +370,18 @@ class Product_Add_To_Cart extends Element {
 			'required'    => [ 'icon', '!=', '' ],
 		];
 
-		// Controls for the AJAX add to cart feature (@since 1.6.1)
+		// AJAX add to cart
 		if ( Woocommerce::enabled_ajax_add_to_cart() ) {
+			$this->controls['ajaxIfno'] = [
+				'tab'     => 'content',
+				'group'   => 'ajax',
+				'type'    => 'info',
+				'content' => sprintf(
+					esc_html__( 'Set globally under %s', 'bricks' ),
+					'<a href="' . Helpers::settings_url( '#tab-woocommerce' ) . '" target="_blank">Bricks > ' . esc_html__( 'Settings', 'bricks' ) . ' > WooCommerce > ' . esc_html__( 'AJAX add to cart', 'bricks' ) . '</a>.',
+				),
+			];
+
 			$this->controls['addingSeparator'] = [
 				'tab'   => 'content',
 				'group' => 'ajax',
@@ -357,7 +395,7 @@ class Product_Add_To_Cart extends Element {
 				'type'        => 'text',
 				'label'       => esc_html__( 'Button text', 'bricks' ),
 				'inline'      => true,
-				'placeholder' => esc_html__( 'Adding', 'bricks' ),
+				'placeholder' => Database::$global_settings['woocommerceAjaxAddingText'] ?? esc_html__( 'Adding', 'bricks' ),
 			];
 
 			$this->controls['addingButtonIcon'] = [
@@ -402,7 +440,17 @@ class Product_Add_To_Cart extends Element {
 				'type'        => 'text',
 				'label'       => esc_html__( 'Button text', 'bricks' ),
 				'inline'      => true,
-				'placeholder' => esc_html__( 'Added', 'bricks' ),
+				'placeholder' => Database::$global_settings['woocommerceAjaxAddedText'] ?? esc_html__( 'Added', 'bricks' ),
+			];
+
+			$this->controls['resetTextAfter'] = [
+				'tab'         => 'content',
+				'group'       => 'ajax',
+				'type'        => 'number',
+				'large'       => true,
+				'label'       => esc_html__( 'Reset text after .. seconds', 'bricks' ),
+				'inline'      => true,
+				'placeholder' => 3,
 			];
 
 			$this->controls['addedButtonIcon'] = [
@@ -422,6 +470,55 @@ class Product_Add_To_Cart extends Element {
 				'inline'      => true,
 				'placeholder' => esc_html__( 'Left', 'bricks' ),
 				'required'    => [ 'addedButtonIcon', '!=', '' ],
+			];
+
+			// Show notice after added (@since 1.9)
+			$this->controls['showNotice'] = [
+				'tab'         => 'content',
+				'group'       => 'ajax',
+				'label'       => esc_html__( 'Show notice', 'bricks' ),
+				'type'        => 'select',
+				'inline'      => true,
+				'placeholder' => isset( Database::$global_settings['woocommerceAjaxShowNotice'] ) ? esc_html__( 'Yes', 'bricks' ) : esc_html__( 'No', 'bricks' ),
+				'options'     => [
+					'no'  => esc_html__( 'No', 'bricks' ),
+					'yes' => esc_html__( 'Yes', 'bricks' ),
+				],
+			];
+
+			// Scroll to notice after added (@since 1.9)
+			$this->controls['scrollToNotice'] = [
+				'tab'         => 'content',
+				'group'       => 'ajax',
+				'label'       => esc_html__( 'Scroll to notice', 'bricks' ),
+				'type'        => 'select',
+				'inline'      => true,
+				'placeholder' => isset( Database::$global_settings['woocommerceAjaxScrollToNotice'] ) ? esc_html__( 'Yes', 'bricks' ) : esc_html__( 'No', 'bricks' ),
+				'options'     => [
+					'no'  => esc_html__( 'No', 'bricks' ),
+					'yes' => esc_html__( 'Yes', 'bricks' ),
+				],
+				'required'    => [ 'showNotice', '=', 'yes' ],
+			];
+
+			// Hide "View cart" button after added (@since 1.9)
+			$this->controls['hideViewCart'] = [
+				'tab'         => 'content',
+				'group'       => 'ajax',
+				'label'       => esc_html__( 'Hide "View cart" button', 'bricks' ),
+				'type'        => 'select',
+				'inline'      => true,
+				'placeholder' => esc_html__( 'No', 'bricks' ),
+				'options'     => [
+					'inline-flex' => esc_html__( 'No', 'bricks' ), // Default .add_to_cart button display is inline-flex
+					'none'        => esc_html__( 'Yes', 'bricks' ),
+				],
+				'css'         => [
+					[
+						'selector' => '.added_to_cart.wc-forward',
+						'property' => 'display',
+					],
+				],
 			];
 		}
 	}
@@ -475,7 +572,22 @@ class Product_Add_To_Cart extends Element {
 	public function add_to_cart_text( $text, $product ) {
 		$settings = $this->settings;
 
-		$text = ! empty( $settings['buttonText'] ) ? $settings['buttonText'] : $text;
+		// Support changing the text based on product type (simple, variable, grouped, external) (@since 1.9)
+		// NOTE TODO: Sometime product not purchasable has different text... worth to add more text fields?
+		switch ( $product->get_type() ) {
+			case 'variable':
+				$text = ! empty( $settings['variableText'] ) ? $settings['variableText'] : $text;
+				break;
+			case 'grouped':
+				$text = ! empty( $settings['groupedText'] ) ? $settings['groupedText'] : $text;
+				break;
+			case 'external':
+				$text = ! empty( $settings['externalText'] ) ? $settings['externalText'] : $text;
+				break;
+			case 'simple':
+				$text = ! empty( $settings['buttonText'] ) ? $settings['buttonText'] : $text;
+				break;
+		}
 
 		$icon          = ! empty( $settings['icon'] ) ? self::render_icon( $settings['icon'], [ 'icon' ] ) : false;
 		$icon_position = isset( $settings['iconPosition'] ) ? $settings['iconPosition'] : 'left';
@@ -510,8 +622,8 @@ class Product_Add_To_Cart extends Element {
 	 * @since 1.6.1
 	 */
 	public function maybe_set_ajax_add_to_cart_data_attribute() {
-		// Only set data attribute if ajax add to cart is enabled and we are not in a loop. (Single product add to cart button)
-		if ( ! Woocommerce::enabled_ajax_add_to_cart() || Query::is_looping() ) {
+		// Set data attribute if ajax add to cart is enabled
+		if ( ! Woocommerce::enabled_ajax_add_to_cart() ) {
 			return;
 		}
 
@@ -545,6 +657,29 @@ class Product_Add_To_Cart extends Element {
 
 			$ajax_add_to_cart_data[ $state . 'HTML' ] = $output;
 		}
+
+		$show_notice      = Woocommerce::global_ajax_show_notice();
+		$scroll_to_notice = Woocommerce::global_ajax_scroll_to_notice();
+		$reset_after      = Woocommerce::global_ajax_reset_text_after();
+
+		if ( isset( $settings['showNotice'] ) ) {
+			// Override global setting if set
+			$show_notice = $settings['showNotice'];
+		}
+
+		if ( isset( $settings['scrollToNotice'] ) ) {
+			// Override global setting if set
+			$scroll_to_notice = $settings['scrollToNotice'];
+		}
+
+		if ( isset( $settings['resetTextAfter'] ) ) {
+			// Override global setting if set
+			$reset_after = absint( $settings['resetTextAfter'] );
+		}
+
+		$ajax_add_to_cart_data['showNotice']     = $show_notice;
+		$ajax_add_to_cart_data['scrollToNotice'] = $scroll_to_notice;
+		$ajax_add_to_cart_data['resetTextAfter'] = max( $reset_after, 1 );
 
 		$this->set_attribute( '_root', 'data-bricks-ajax-add-to-cart', wp_json_encode( $ajax_add_to_cart_data ) );
 	}

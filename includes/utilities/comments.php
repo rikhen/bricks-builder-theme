@@ -7,6 +7,11 @@
 function bricks_list_comments( $comment, $args, $depth ) {
 	$GLOBALS['comment'] = $comment;
 
+	// Return: Comment is unapproved & the user isn't the author & is also not an administrator
+	if ( $comment->comment_approved == '0' && get_current_user_id() != $comment->user_id && ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
 	if ( $args['style'] === 'div' ) {
 		$tag       = 'div';
 		$add_below = 'comment';
@@ -49,7 +54,17 @@ function bricks_list_comments( $comment, $args, $depth ) {
 					<h5 class="fn"><?php echo get_comment_author_link(); ?></h5>
 
 					<?php if ( $comment->comment_approved == '0' ) { ?>
-					<em class="comment-awaiting-moderation"><?php esc_html_e( 'Your comment is awaiting moderation.', 'bricks' ); ?></em><br />
+						<?php
+						if ( get_current_user_id() == $comment->user_id ) {
+							?>
+							<em class="comment-awaiting-moderation"><?php esc_html_e( 'Your comment is awaiting moderation. This is a preview; your comment will be visible after it has been approved.', 'bricks' ); ?></em><br />
+							<?php
+						} elseif ( current_user_can( 'manage_options' ) || current_user_can( 'edit_posts' ) ) {
+							?>
+							<em class="comment-awaiting-moderation"><?php esc_html_e( 'This comment is awaiting moderation.', 'bricks' ); ?></em><br />
+							<?php
+						}
+						?>
 					<?php } ?>
 
 					<div class="comment-meta">

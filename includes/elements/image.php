@@ -28,6 +28,7 @@ class Element_Image extends Element {
 	}
 
 	public function set_controls() {
+		// Get breakpoints for "Sources" control
 		$breakpoints        = Breakpoints::$breakpoints;
 		$breakpoint_options = [];
 
@@ -35,7 +36,7 @@ class Element_Image extends Element {
 			$breakpoint_options[ $breakpoint['key'] ] = isset( $breakpoint['base'] ) ? $breakpoint['label'] . ' (' . esc_html__( 'Base breakpoint', 'bricks' ) . ')' : $breakpoint['label'];
 		}
 
-		if ( ! Breakpoints::$is_mobile_first) {
+		if ( ! Breakpoints::$is_mobile_first ) {
 			$breakpoint_options = array_reverse( $breakpoint_options );
 		}
 
@@ -45,7 +46,7 @@ class Element_Image extends Element {
 		// Apply CSS filters only to img tag
 		$this->controls['_cssFilters']['css'] = [
 			[
-				'selector' => '&:is(img)',
+				'selector' => '&:not(.tag)',
 				'property' => 'filter',
 			],
 			[
@@ -56,15 +57,13 @@ class Element_Image extends Element {
 
 		$this->controls['_typography']['css'][0]['selector'] = 'figcaption';
 
-		// Image
+		// IMAGE
 
 		$this->controls['image'] = [
-			'tab'  => 'content',
 			'type' => 'image',
 		];
 
 		$this->controls['tag'] = [
-			'tab'         => 'content',
 			'label'       => esc_html__( 'HTML tag', 'bricks' ),
 			'type'        => 'select',
 			'options'     => [
@@ -79,17 +78,20 @@ class Element_Image extends Element {
 			'required'    => [ 'sources', '=', '' ],
 		];
 
+		$this->controls['customTag'] = [
+			'label'       => esc_html__( 'Custom tag', 'bricks' ),
+			'type'        => 'text',
+			'inline'      => true,
+			'dd'          => false,
+			'placeholder' => 'div',
+			'required'    => [ 'tag', '=', 'custom' ],
+		];
+
 		$this->controls['sources'] = [
-			'tab'           => 'content',
 			'label'         => esc_html__( 'Sources', 'bricks' ),
 			'type'          => 'repeater',
 			'titleProperty' => 'breakpoint',
-			'description'   => sprintf(
-				'<p><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/picture" target="_blank">%s</a> %s</p><p>%s</p>',
-			 	esc_html__( 'Show different images per breakpoint.', 'bricks' ),
-			 	esc_html__( 'Order matters. Start at smallest breakpoint. If using mobile-first start at largest breakpoint.', 'bricks' ),
-				esc_html__( 'Set source image at base breakpoint to use main image as fallback image.', 'bricks' )
-			),
+			'description'   => '<a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/picture" target="_blank">' . esc_html__( 'Show different images per breakpoint.', 'bricks' ) . '</a>',
 			'placeholder'   => esc_html__( 'Source', 'bricks' ),
 			'fields'        => [
 				'breakpoint' => [
@@ -98,35 +100,54 @@ class Element_Image extends Element {
 					'options'     => $breakpoint_options,
 					'placeholder' => esc_html__( 'Select', 'bricks' ),
 				],
-				'media' => [
+				'media'      => [
 					'label'       => esc_html__( 'Media query', 'bricks' ),
 					'type'        => 'text',
 					'placeholder' => '(max-width: 600px)',
 					'required'    => [ 'breakpoint', '=', '_custom' ],
 				],
-				'image' => [
-					'label' => esc_html__( 'Image', 'bricks' ),
-					'type'  => 'image',
+				'image'      => [
+					'label'    => esc_html__( 'Image', 'bricks' ),
+					'type'     => 'image',
 					'required' => [ 'breakpoint', '!=', '' ],
 				],
 			],
 		];
 
-		$this->controls['customTag'] = [
-			'tab'            => 'content',
-			'label'          => esc_html__( 'Custom tag', 'bricks' ),
-			'type'           => 'text',
-			'inline'         => true,
-			'hasDynamicData' => false,
-			'placeholder'    => 'div',
-			'required'       => [ 'tag', '=', 'custom' ],
+		$this->controls['sourcesInfo'] = [
+			'type'     => 'info',
+			'content'  => esc_html__( 'Order matters. Start at smallest breakpoint. If using mobile-first start at largest breakpoint.', 'bricks' ) . ' ' . esc_html__( 'Set source image at base breakpoint to use main image as fallback image.', 'bricks' ),
+			'required' => [ 'sources', '!=', '' ],
 		];
 
+		// Delete '_aspectRatio' control to add it here before the '_objectFit' (@since 1.9)
+		if ( isset( $this->controls['_aspectRatio'] ) ) {
+			unset( $this->controls['_aspectRatio'] );
+
+			$this->controls['_aspectRatio'] = [
+				'label'       => esc_html__( 'Aspect ratio', 'bricks' ),
+				'type'        => 'text',
+				'inline'      => true,
+				'dd'          => false,
+				'placeholder' => '',
+				'css'         => [
+					[
+						'property' => 'aspect-ratio',
+						'selector' => '&:not(.tag)',
+					],
+					[
+						'property' => 'aspect-ratio',
+						'selector' => 'img',
+					],
+				],
+			];
+		}
+
 		$this->controls['_objectFit'] = [
-			'tab'         => 'content',
-			'label'       => esc_html__( 'Object fit', 'bricks' ),
-			'type'        => 'select',
-			'options'     => [
+			'label'   => esc_html__( 'Object fit', 'bricks' ),
+			'type'    => 'select',
+			'inline'  => true,
+			'options' => [
 				'fill'       => esc_html__( 'Fill', 'bricks' ),
 				'contain'    => esc_html__( 'Contain', 'bricks' ),
 				'cover'      => esc_html__( 'Cover', 'bricks' ),
@@ -134,41 +155,38 @@ class Element_Image extends Element {
 				'scale-down' => esc_html__( 'Scale down', 'bricks' ),
 				'fill'       => esc_html__( 'Fill', 'bricks' ),
 			],
-			'css'         => [
+			'css'     => [
 				[
 					'property' => 'object-fit',
-					'selector' => '',
+					'selector' => '&:not(.tag)',
 				],
 				[
 					'property' => 'object-fit',
 					'selector' => 'img',
 				],
 			],
-			'inline'      => true,
 		];
 
 		$this->controls['_objectPosition'] = [
-			'tab'            => 'content',
-			'label'          => esc_html__( 'Object position', 'bricks' ),
-			'type'           => 'text',
-			'css'            => [
+			'label'  => esc_html__( 'Object position', 'bricks' ),
+			'type'   => 'text',
+			'inline' => true,
+			'dd'     => false,
+			'css'    => [
 				[
 					'property' => 'object-position',
-					'selector' => '',
+					'selector' => '&:not(.tag)',
 				],
 				[
 					'property' => 'object-position',
 					'selector' => 'img',
 				],
 			],
-			'inline'         => true,
-			'hasDynamicData' => false,
 		];
 
 		// Alt text
 
 		$this->controls['altText'] = [
-			'tab'      => 'content',
 			'label'    => esc_html__( 'Custom alt text', 'bricks' ),
 			'type'     => 'text',
 			'inline'   => true,
@@ -187,7 +205,6 @@ class Element_Image extends Element {
 		$show_caption = ! empty( $this->theme_styles['caption'] ) ? $this->theme_styles['caption'] : 'attachment';
 
 		$this->controls['caption'] = [
-			'tab'         => 'content',
 			'label'       => esc_html__( 'Caption Type', 'bricks' ),
 			'type'        => 'select',
 			'options'     => $caption_options,
@@ -196,7 +213,6 @@ class Element_Image extends Element {
 		];
 
 		$this->controls['captionCustom'] = [
-			'tab'         => 'content',
 			'label'       => esc_html__( 'Custom caption', 'bricks' ),
 			'type'        => 'text',
 			'placeholder' => esc_html__( 'Here goes your caption ...', 'bricks' ),
@@ -204,7 +220,6 @@ class Element_Image extends Element {
 		];
 
 		$this->controls['loading'] = [
-			'tab'         => 'content',
 			'label'       => esc_html__( 'Loading', 'bricks' ),
 			'type'        => 'select',
 			'inline'      => true,
@@ -216,7 +231,6 @@ class Element_Image extends Element {
 		];
 
 		$this->controls['showTitle'] = [
-			'tab'      => 'content',
 			'label'    => esc_html__( 'Show title', 'bricks' ),
 			'type'     => 'checkbox',
 			'inline'   => true,
@@ -224,7 +238,6 @@ class Element_Image extends Element {
 		];
 
 		$this->controls['stretch'] = [
-			'tab'   => 'content',
 			'label' => esc_html__( 'Stretch', 'bricks' ),
 			'type'  => 'checkbox',
 			'css'   => [
@@ -237,7 +250,6 @@ class Element_Image extends Element {
 
 		$this->controls['popupOverlay'] = [
 			// 'deprecated' => true, // Redundant: Use _gradient settings instead
-			'tab'      => 'content',
 			'label'    => esc_html__( 'Image Overlay', 'bricks' ),
 			'type'     => 'color',
 			'css'      => [
@@ -250,14 +262,12 @@ class Element_Image extends Element {
 		];
 
 		// Link To
-		$this->controls['linkToSeparator'] = [
-			'tab'   => 'content',
+		$this->controls['linkToSep'] = [
 			'type'  => 'separator',
 			'label' => esc_html__( 'Link To', 'bricks' ),
 		];
 
 		$this->controls['link'] = [
-			'tab'         => 'content',
 			'type'        => 'select',
 			'options'     => [
 				'lightbox'   => esc_html__( 'Lightbox', 'bricks' ),
@@ -271,7 +281,6 @@ class Element_Image extends Element {
 
 		// @since 1.8.1
 		$this->controls['lightboxImageSize'] = [
-			'tab'         => 'content',
 			'label'       => esc_html__( 'Lightbox image size', 'bricks' ),
 			'type'        => 'select',
 			'options'     => $this->control_options['imageSizes'],
@@ -281,7 +290,6 @@ class Element_Image extends Element {
 
 		// @since 1.8.4
 		$this->controls['lightboxAnimationType'] = [
-			'tab'         => 'content',
 			'label'       => esc_html__( 'Lightbox animation type', 'bricks' ),
 			'type'        => 'select',
 			'options'     => $this->control_options['lightboxAnimationTypes'],
@@ -290,7 +298,6 @@ class Element_Image extends Element {
 		];
 
 		$this->controls['lightboxId'] = [
-			'tab'         => 'content',
 			'label'       => esc_html__( 'Lightbox ID', 'bricks' ),
 			'type'        => 'text',
 			'inline'      => true,
@@ -299,38 +306,33 @@ class Element_Image extends Element {
 		];
 
 		$this->controls['newTab'] = [
-			'tab'      => 'content',
 			'label'    => esc_html__( 'Open in new tab', 'bricks' ),
 			'type'     => 'checkbox',
 			'required' => [ 'link', '=', [ 'attachment', 'media' ] ],
 		];
 
 		$this->controls['url'] = [
-			'tab'      => 'content',
 			'type'     => 'link',
 			'required' => [ 'link', '=', 'url' ],
 		];
 
 		// Icon
 
-		$this->controls['popupSeparator'] = [
-			'tab'      => 'content',
-			'label'    => esc_html__( 'Icon', 'bricks' ),
-			'type'     => 'separator',
-			'inline'   => true,
-			'small'    => true,
+		$this->controls['popupSep'] = [
+			'label'  => esc_html__( 'Icon', 'bricks' ),
+			'type'   => 'separator',
+			'inline' => true,
+			'small'  => true,
 		];
 
 		// To hide icon for specific elements when image icon set in theme styles
 		$this->controls['popupIconDisable'] = [
-			'tab'   => 'content',
 			'label' => esc_html__( 'Disable icon', 'bricks' ),
 			'info'  => esc_html__( 'Settings', 'bricks' ) . ' > ' . esc_html__( 'Theme styles', 'bricks' ) . ' > ' . esc_html__( 'Image', 'bricks' ),
 			'type'  => 'checkbox',
 		];
 
 		$this->controls['popupIcon'] = [
-			'tab'      => 'content',
 			'label'    => esc_html__( 'Icon', 'bricks' ),
 			'type'     => 'icon',
 			'inline'   => true,
@@ -340,7 +342,6 @@ class Element_Image extends Element {
 
 		// NOTE: Set popup CSS control outside of control 'link' (CSS is not applied to nested controls)
 		$this->controls['popupIconBackgroundColor'] = [
-			'tab'      => 'content',
 			'label'    => esc_html__( 'Icon background color', 'bricks' ),
 			'type'     => 'color',
 			'css'      => [
@@ -353,7 +354,6 @@ class Element_Image extends Element {
 		];
 
 		$this->controls['popupIconBorder'] = [
-			'tab'      => 'content',
 			'label'    => esc_html__( 'Icon border', 'bricks' ),
 			'type'     => 'border',
 			'css'      => [
@@ -366,7 +366,6 @@ class Element_Image extends Element {
 		];
 
 		$this->controls['popupIconBoxShadow'] = [
-			'tab'      => 'content',
 			'label'    => esc_html__( 'Icon box shadow', 'bricks' ),
 			'type'     => 'box-shadow',
 			'css'      => [
@@ -379,7 +378,6 @@ class Element_Image extends Element {
 		];
 
 		$this->controls['popupIconTypography'] = [
-			'tab'         => 'content',
 			'label'       => esc_html__( 'Icon typography', 'bricks' ),
 			'type'        => 'typography',
 			'css'         => [
@@ -405,7 +403,6 @@ class Element_Image extends Element {
 		];
 
 		$this->controls['popupIconHeight'] = [
-			'tab'      => 'content',
 			'label'    => esc_html__( 'Icon height', 'bricks' ),
 			'type'     => 'number',
 			'units'    => true,
@@ -419,7 +416,6 @@ class Element_Image extends Element {
 		];
 
 		$this->controls['popupIconWidth'] = [
-			'tab'      => 'content',
 			'label'    => esc_html__( 'Icon width', 'bricks' ),
 			'type'     => 'number',
 			'units'    => true,
@@ -433,7 +429,6 @@ class Element_Image extends Element {
 		];
 
 		$this->controls['popupIconTransition'] = [
-			'tab'      => 'content',
 			'label'    => esc_html__( 'Icon transition', 'bricks' ),
 			'type'     => 'text',
 			'inline'   => true,
@@ -449,13 +444,11 @@ class Element_Image extends Element {
 		// Image masking (@since 1.8.5)
 
 		$this->controls['maskSep'] = [
-			'tab'   => 'content',
 			'type'  => 'separator',
 			'label' => esc_html__( 'Mask', 'bricks' ),
 		];
 
 		$this->controls['mask'] = [
-			'tab'         => 'content',
 			'label'       => esc_html__( 'Mask', 'bricks' ),
 			'type'        => 'select',
 			'inline'      => true,
@@ -502,14 +495,12 @@ class Element_Image extends Element {
 		];
 
 		$this->controls['maskCustom'] = [
-      'tab'      => 'content',
-      'type'     => 'image',
+			'type'     => 'image',
 			'unsplash' => false,
 			'required' => [ 'mask', '=', 'custom' ],
-    ];
+		];
 
 		$this->controls['maskSize'] = [
-			'tab'         => 'content',
 			'label'       => esc_html__( 'Size', 'bricks' ),
 			'type'        => 'select',
 			'inline'      => true,
@@ -525,7 +516,6 @@ class Element_Image extends Element {
 		];
 
 		$this->controls['maskSizeCustom'] = [
-			'tab'      => 'content',
 			'label'    => esc_html__( 'Custom size', 'bricks' ),
 			'type'     => 'number',
 			'units'    => true,
@@ -534,7 +524,6 @@ class Element_Image extends Element {
 		];
 
 		$this->controls['maskPosition'] = [
-			'tab'         => 'content',
 			'label'       => esc_html__( 'Position', 'bricks' ),
 			'type'        => 'select',
 			'inline'      => true,
@@ -554,7 +543,6 @@ class Element_Image extends Element {
 		];
 
 		$this->controls['maskRepeat'] = [
-			'tab'         => 'content',
 			'label'       => esc_html__( 'Repeat', 'bricks' ),
 			'type'        => 'select',
 			'inline'      => true,
@@ -571,24 +559,42 @@ class Element_Image extends Element {
 		];
 	}
 
-	public function get_mask_url($settings) {
-		$mask = ! empty( $settings['mask'] ) ? $settings['mask'] : '';
+	public function get_mask_url( $settings ) {
+		$mask     = ! empty( $settings['mask'] ) ? $settings['mask'] : '';
 		$mask_url = '';
 
 		// Custom mask file (SVG, PNG)
 		if ( $mask === 'custom' ) {
+			// Custom mask image from media library
 			if ( ! empty( $settings['maskCustom']['id'] ) ) {
 				$image_src = wp_get_attachment_image_src( $settings['maskCustom']['id'], 'full' );
 				$mask_url  = ! empty( $image_src[0] ) ? $image_src[0] : '';
 			}
-		} else {
+
+			// Dynamic data mask image
+			elseif ( ! empty( $settings['maskCustom']['useDynamicData'] ) ) {
+				$image_src = $this->render_dynamic_data_tag( $settings['maskCustom']['useDynamicData'], 'image' );
+
+				// Extract URL from the image tag 'src' attribute
+				preg_match( '/src="([^"]*)"/', $image_tag, $matches );
+				$mask_url = ! empty( $matches[1] ) ? $matches[1] : '';
+			}
+
+			// Custom URL image mask
+			elseif ( ! empty( $settings['maskCustom']['url'] ) ) {
+				$mask_url = $settings['maskCustom']['url'];
+			}
+		}
+
+		// Predefined mask file (SVG)
+		else {
 			$mask_url = BRICKS_URL_ASSETS . "svg/masks/{$mask}.svg";
 		}
 
 		return $mask_url;
 	}
 
-	protected function set_mask_attributes($mask_url, $mask_settings) {
+	protected function set_mask_attributes( $mask_url, $mask_settings ) {
 		if ( empty( $mask_settings['mask'] ) ) {
 			return;
 		}
@@ -786,8 +792,8 @@ class Element_Image extends Element {
 				}
 
 				// Get image ID, size, srcset (get_normalized_image_settings() in case image uses dynamic data)
-				$source = $this->get_normalized_image_settings( $source );
-				$source_image = ! empty( $source['image'] ) ? $source['image'] : $source;
+				$source          = $this->get_normalized_image_settings( $source );
+				$source_image    = ! empty( $source['image'] ) ? $source['image'] : $source;
 				$source_image_id = ! empty( $source_image['id'] ) ? $source_image['id'] : false;
 
 				if ( $source_image_id ) {

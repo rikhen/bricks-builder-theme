@@ -181,10 +181,15 @@ class Assets {
 			wp_enqueue_style( 'bricks-themify-icons', BRICKS_URL_ASSETS . 'css/libs/themify-icons.min.css', [ 'bricks-frontend' ], filemtime( BRICKS_PATH_ASSETS . 'css/libs/themify-icons.min.css' ) );
 		}
 
-		// STEP: Load animation CSS file (check for _animation settings in Bricks data)
+		// STEP: Load animation CSS file (check for '_animation' settings in Bricks data)
 		// NOTE: @since 1.6 - '_animation' deprecated  in favor of interactions (@see add_data_attributes)
 		if ( bricks_is_builder() || strpos( $bricks_settings_string, '"_animation"' ) !== false ) {
 			wp_enqueue_style( 'bricks-animate' );
+		}
+
+		// STEP: Load "AJAX loader" animation CSS file (check for 'ajax_loader_animation' settings in Bricks data)
+		if ( strpos( $bricks_settings_string, '"ajax_loader_animation"' ) !== false ) {
+			wp_enqueue_style( 'bricks-ajax-loader', BRICKS_URL_ASSETS . 'css/libs/loading-animation.min.css', [ 'bricks-frontend' ], filemtime( BRICKS_PATH_ASSETS . 'css/libs/loading-animation.min.css' ) );
 		}
 
 		// STEP: Load balloon (tooltip) CSS file (check for data-balloon-pos settings in Bricks data)
@@ -623,7 +628,7 @@ class Assets {
 
 			foreach ( $element_names as $element_name ) {
 				$element_controls = Elements::get_element( [ 'name' => $element_name ], 'controls' );
-				$inline_css .= self::generate_inline_css_from_element(
+				$inline_css      .= self::generate_inline_css_from_element(
 					[
 						'name'            => $element_name,
 						'settings'        => ! empty( $global_class['settings'] ) ? $global_class['settings'] : [],
@@ -799,7 +804,7 @@ class Assets {
 					switch ( $css_property ) {
 						case 'font-family':
 							// Remove added single or double quotes (") from font-family value to find match
-							$css_value = str_replace( "'", "", $css_value );
+							$css_value = str_replace( "'", '', $css_value );
 							$css_value = str_replace( '"', '', $css_value );
 
 							// Remove fallback font (@since 1.5.1)
@@ -829,8 +834,8 @@ class Assets {
 						// font-variation-settings (@since 1.8)
 						case 'font-variation-settings':
 							// Remove single & double quotes from axis keys & values
-							$css_value = str_replace( "'", '', $css_value );
-							$css_value = str_replace( '"', '', $css_value );
+							$css_value           = str_replace( "'", '', $css_value );
+							$css_value           = str_replace( '"', '', $css_value );
 							$font_variation_axis = explode( ',', $css_value );
 
 							foreach ( $font_variation_axis as $axis ) {
@@ -840,8 +845,8 @@ class Assets {
 
 								// Add axis key & value to font variants (e.g.: 'wdth' => '125', 'wght' => '400', etc.)
 								if ( $axis_key && $axis_value ) {
-									$font_axis[$axis_key] = $axis_value;
-									$axis_in_use[]        = $axis_key;
+									$font_axis[ $axis_key ] = $axis_value;
+									$axis_in_use[]          = $axis_key;
 								}
 							}
 							break;
@@ -866,7 +871,7 @@ class Assets {
 				$google_font_axis = [];
 
 				// 'italic' = 400 (normal)
-				if ( $google_font_variant === 'italic') {
+				if ( $google_font_variant === 'italic' ) {
 					$google_font_axis['wght'] = 400;
 					$axis_in_use[]            = 'wght';
 				}
@@ -877,7 +882,7 @@ class Assets {
 					$axis_in_use[]            = 'wght';
 				}
 
-				if ( strpos( $google_font_variant, 'italic' ) !== false) {
+				if ( strpos( $google_font_variant, 'italic' ) !== false ) {
 					$google_font_axis['ital'] = 1;
 					$axis_in_use[]            = 'ital';
 				}
@@ -891,9 +896,12 @@ class Assets {
 			sort( $axis_in_use );
 
 			// Alphabetically sort axis (a-z like ital,slnt,wdth,wght)
-			usort( $axis_in_use, function( $a, $b ) {
-				return Helpers::google_fonts_get_axis_rank( $a ) > Helpers::google_fonts_get_axis_rank( $b ) ? 1 : -1;
-			} );
+			usort(
+				$axis_in_use,
+				function( $a, $b ) {
+					return Helpers::google_fonts_get_axis_rank( $a ) > Helpers::google_fonts_get_axis_rank( $b ) ? 1 : -1;
+				}
+			);
 
 			// Add family, variants, axis to active Google fonts array
 			$active_google_fonts[] = [
@@ -903,18 +911,18 @@ class Assets {
 			];
 		} // END: foreach ( $google_fonts as $google_font )
 
-		$active_google_fonts_url  = 'https://fonts.googleapis.com/css2';
-		$is_first_family          = true;
+		$active_google_fonts_url = 'https://fonts.googleapis.com/css2';
+		$is_first_family         = true;
 
 		foreach ( $active_google_fonts as $google_font ) {
 			// Replace font family spaces with plus sign and add to Google font URL
 			$google_font_family       = str_replace( ' ', '+', $google_font['family'] );
 			$active_google_fonts_url .= $is_first_family ? "?family=$google_font_family" : "&family=$google_font_family";
 			$is_first_family          = false;
-			$axis_in_use							= $google_font['axis'];
-			$font_variants						= $google_font['variants'];
+			$axis_in_use              = $google_font['axis'];
+			$font_variants            = $google_font['variants'];
 
-			$active_google_fonts_url .= ":" . implode( ',', $axis_in_use ) . "@"; // E.g.: :ital,wght@1,100,400;1,100,700
+			$active_google_fonts_url .= ':' . implode( ',', $axis_in_use ) . '@'; // E.g.: :ital,wght@1,100,400;1,100,700
 
 			$final_variants = [];
 
@@ -974,12 +982,16 @@ class Assets {
 		self::$webfonts_loaded = true;
 
 		// Preconnect to Google Fonts for async DNS lookup
-		add_action( 'wp_head', function() {
-			echo '<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>';
-		}, 7 );
+		add_action(
+			'wp_head',
+			function() {
+				echo '<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>';
+			},
+			7
+		);
 
 		// Pass null to allow to pass multiple Google fonts via the 'family' URL parameter
-		wp_enqueue_style( "bricks-google-fonts", $active_google_fonts_url, [], null );
+		wp_enqueue_style( 'bricks-google-fonts', $active_google_fonts_url, [], null );
 
 		/**
 		 * Hide DOM until all webfonts are loaded via fontfaceobserver.min.js (contains Promise polyfill)
@@ -996,7 +1008,7 @@ class Assets {
 			$font_face_observer_load = '';
 
 			foreach ( $active_google_fonts as $index => $active_google_font ) {
-				$font_family = ! empty ( $active_google_font['family'] ) ? $active_google_font['family'] : false;
+				$font_family = ! empty( $active_google_font['family'] ) ? $active_google_font['family'] : false;
 
 				if ( ! $font_family ) {
 					continue;
@@ -1017,19 +1029,23 @@ class Assets {
 				document.body.style.opacity = null;
 			});";
 
-			$font_face_observer .= "})";
+			$font_face_observer .= '})';
 
 			if ( $font_face_observer_load ) {
 				// Ensure DOM is loaded with 'opacity: 0' to avoid any content from briefly showing (high priority to ensure the 'style' is not reset/overwritten by the user)
-				add_filter( 'bricks/body/attributes', function( $attributes ) {
-					if ( isset( $attributes['style'] ) ) {
-						$attributes['style'] .= '; opacity: 0;';
-					} else {
-						$attributes['style'] = 'opacity: 0;';
-					}
+				add_filter(
+					'bricks/body/attributes',
+					function( $attributes ) {
+						if ( isset( $attributes['style'] ) ) {
+							$attributes['style'] .= '; opacity: 0;';
+						} else {
+							$attributes['style'] = 'opacity: 0;';
+						}
 
-					return $attributes;
-				}, 999999 );
+						return $attributes;
+					},
+					999999
+				);
 
 				wp_enqueue_script( 'bricks-fontfaceobserver', BRICKS_URL_ASSETS . 'js/libs/fontfaceobserver.min.js', [], '2.3.0', false );
 				wp_add_inline_script( 'bricks-fontfaceobserver', $font_face_observer );
@@ -1105,9 +1121,13 @@ class Assets {
 		// @since 1.8.2 Add 'staticArea' check to get correct post ID when generating dynamic CSS for static areas in the builder
 		$post_id = wp_doing_ajax() && ! isset( $_POST['staticArea'] ) && ! empty( self::$post_id ) ? self::$post_id : get_the_ID();
 
-		// @since 1.8.0.1 - Only use the page_for_posts if we are on the blog and not in a loop, otherwise no dynamic CSS generated as the post ID is not correct
-		if ( is_home() && ! Query::is_any_looping() ) {
-			$post_id = get_option( 'page_for_posts' );
+		/**
+		 * Shop & Blog page: $post_id is the first looping post id: So we need to get the original post id
+		 *
+		 * @since 1.9.1
+		 */
+		if ( ( is_home() || ( Woocommerce::is_woocommerce_active() && is_shop() ) ) && ! Query::is_any_looping() ) {
+			$post_id = Database::$page_data['original_post_id'];
 		}
 
 		if ( Helpers::is_bricks_template( $post_id ) ) {
@@ -1359,7 +1379,7 @@ class Assets {
 										if ( $background_url ) {
 											// Add breakpoint-specific dynamic data via inline CSS (as we need the post ID of the requested post)
 											if ( $dynamic_tag ) {
-												$dynamic_data_background = $css_selector . $loop_index_selector . ' {background-image: url(' . esc_url( $background_url ) . ')} ';
+												$dynamic_data_background = $css_selector . $loop_index_selector . ' {background-image: url(' . esc_url_raw( $background_url ) . ')} ';
 
 												// Is mobile first: No breakpoint = desktop
 												if ( ! $breakpoint && Breakpoints::$is_mobile_first ) {
@@ -1377,13 +1397,17 @@ class Assets {
 
 												self::$inline_css_dynamic_data .= $dynamic_data_background;
 											} else {
-												$css_rules[ $css_selector . $loop_index_selector ][] = 'background-image: url(' . esc_url( $background_url ) . ')';
+												$css_rules[ $css_selector . $loop_index_selector ][] = 'background-image: url(' . esc_url_raw( $background_url ) . ')';
 											}
 										}
 										break;
 
 									case 'attachment':
 										$css_rules[ $css_selector ][] = "background-attachment: $background_value";
+										break;
+
+									case 'blendMode':
+										$css_rules[ $css_selector ][] = "background-blend-mode: $background_value";
 										break;
 
 									case 'repeat':
@@ -2085,7 +2109,7 @@ class Assets {
 					// Remove duplicate CSS declarations
 					$css_declarations = array_unique( $css_declarations, SORT_STRING );
 
-					if ( ! isset( self::$inline_css_breakpoints[ $css_type ][ $breakpoint ][ $css_selector] ) ) {
+					if ( ! isset( self::$inline_css_breakpoints[ $css_type ][ $breakpoint ][ $css_selector ] ) ) {
 						self::$inline_css_breakpoints[ $css_type ][ $breakpoint ][ $css_selector ] = [];
 					}
 
@@ -2100,11 +2124,11 @@ class Assets {
 				strpos( $setting_value, '{' ) !== false
 				&& ! isset( $control['breakpoints'] )
 			) {
-				if ( ! isset( self::$inline_css_breakpoints[ $css_type ][ $breakpoint ][ '_cssCustom'] ) ) {
-					self::$inline_css_breakpoints[ $css_type ][ $breakpoint ][ '_cssCustom' ] = '';
+				if ( ! isset( self::$inline_css_breakpoints[ $css_type ][ $breakpoint ]['_cssCustom'] ) ) {
+					self::$inline_css_breakpoints[ $css_type ][ $breakpoint ]['_cssCustom'] = '';
 				}
 
-				self::$inline_css_breakpoints[ $css_type ][ $breakpoint ][ '_cssCustom' ] .= $setting_value;
+				self::$inline_css_breakpoints[ $css_type ][ $breakpoint ]['_cssCustom'] .= $setting_value;
 			}
 
 			return [];
@@ -2147,7 +2171,7 @@ class Assets {
 				$loop_index      = Query::get_loop_index();
 				// Combine loop element ID and element id (enable multiple query loops containing the same template element (@since 1.5)
 				// Combine loop index (@since 1.8)
-				$loop_style_key  = $loop_element_id . $element_id . $loop_index;
+				$loop_style_key = $loop_element_id . $element_id . $loop_index;
 
 				// CSS is identical for every loop item (except DD featured image)
 				if ( ! in_array( $loop_style_key, self::$css_looping_elements ) ) {
@@ -2328,7 +2352,7 @@ class Assets {
 		}
 
 		// Return: Inline CSS is not unique (@since 1.8)
-		if ( in_array( $inline_css, self::$unique_inline_css ) ) {
+		if ( $css_type !== 'theme_style' && in_array( $inline_css, self::$unique_inline_css ) ) {
 			return '';
 		}
 
@@ -2713,18 +2737,23 @@ class Assets {
 		self::$loop_index_elements[] = $current_element_id;
 
 		// Fire the filter
-		add_filter( 'bricks/element/render_attributes', function( $attributes, $key, $element ) use ( $current_element_id ) {
-			if ( $element->id !== $current_element_id ) {
+		add_filter(
+			'bricks/element/render_attributes',
+			function( $attributes, $key, $element ) use ( $current_element_id ) {
+				if ( $element->id !== $current_element_id ) {
+					return $attributes;
+				}
+
+				$query_loop_index = Query::get_loop_index();
+
+				if ( $query_loop_index !== '' ) {
+					$attributes[ $key ]['data-query-loop-index'] = Query::get_loop_index();
+				}
+
 				return $attributes;
-			}
-
-			$query_loop_index = Query::get_loop_index();
-
-			if ( $query_loop_index !== '' ) {
-				$attributes[ $key ]['data-query-loop-index'] = Query::get_loop_index();
-			}
-
-			return $attributes;
-		}, 10, 3 );
+			},
+			10,
+			3
+		);
 	}
 }

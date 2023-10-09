@@ -35,7 +35,7 @@ class Element_Container extends Element {
 		 * Check via control startsWith '_gridItem'
 		 *
 		 * @see PanelControl.vue 'settings' watcher
-		 * @since 1.x
+		 * @since 1.6.1
 		 */
 		$this->controls['_gridItemSeparator'] = [
 			'type'  => 'separator',
@@ -611,7 +611,7 @@ class Element_Container extends Element {
 
 			// Custom shape from attachment ID (@since 1.8.6)
 			if ( $shape_name === 'custom' ) {
-				$svg_path = ! empty( $shape['shapeCustom']['id']) ? get_attached_file( $shape['shapeCustom']['id'] ) : false;
+				$svg_path = ! empty( $shape['shapeCustom']['id'] ) ? get_attached_file( $shape['shapeCustom']['id'] ) : false;
 				$svg      = $svg_path ? Helpers::file_get_contents( $svg_path ) : false;
 			}
 
@@ -754,10 +754,9 @@ class Element_Container extends Element {
 					$attributes[] = 'data-background-video-loop="1"';
 				}
 
-
 				if ( ! empty( $background['videoShowAtBreakpoint'] ) ) {
 					$breakpoint = Breakpoints::get_breakpoint_by( 'key', $background['videoShowAtBreakpoint'] );
-					$width = isset( $breakpoint['width'] ) ? $breakpoint['width'] : null;
+					$width      = isset( $breakpoint['width'] ) ? $breakpoint['width'] : null;
 
 					// Is base breakpoint
 					if ( isset( $breakpoint['base'] ) ) {
@@ -812,12 +811,15 @@ class Element_Container extends Element {
 			// Prevent endless loop for global element (@since 1.8)
 			if ( ! empty( $global_element['global'] ) ) {
 				// Find the global element and unset 'hasLoop'
-				Database::$global_data['elements'] = array_map( function( $global_element ) use ( $element ) {
-					if ( ! empty( $element['global'] ) && $element['global'] === $global_element['global'] ) {
-						unset( $global_element['settings']['hasLoop'] );
-					}
-					return $global_element;
-				}, Database::$global_data['elements'] );
+				Database::$global_data['elements'] = array_map(
+					function( $global_element ) use ( $element ) {
+						if ( ! empty( $element['global'] ) && $element['global'] === $global_element['global'] ) {
+							  unset( $global_element['settings']['hasLoop'] );
+						}
+						return $global_element;
+					},
+					Database::$global_data['elements']
+				);
 			}
 
 			// STEP: Render loop
@@ -828,12 +830,15 @@ class Element_Container extends Element {
 			// Prevent endless loop for global element (@since 1.8)
 			if ( ! empty( $global_element['global'] ) ) {
 				// Add back global element 'hasLoop' setting after execute render_element
-				Database::$global_data['elements'] = array_map( function( $global_element ) use ( $element ) {
-					if ( ! empty( $element['global'] ) && $element['global'] === $global_element['global'] ) {
-						$global_element['settings']['hasLoop'] = true;
-					}
-					return $global_element;
-				}, Database::$global_data['elements'] );
+				Database::$global_data['elements'] = array_map(
+					function( $global_element ) use ( $element ) {
+						if ( ! empty( $element['global'] ) && $element['global'] === $global_element['global'] ) {
+							  $global_element['settings']['hasLoop'] = true;
+						}
+						return $global_element;
+					},
+					Database::$global_data['elements']
+				);
 			}
 
 			// STEP: Infinite scroll
@@ -881,7 +886,7 @@ class Element_Container extends Element {
 
 		// Non-megamenu dropdown content: Set tag to 'ul' (@since 1.8)
 		$parent_id      = ! empty( $element['parent'] ) ? $element['parent'] : false;
-		$parent_element = ! empty( Frontend::$elements[$parent_id] ) ? Frontend::$elements[$parent_id] : false;
+		$parent_element = ! empty( Frontend::$elements[ $parent_id ] ) ? Frontend::$elements[ $parent_id ] : false;
 
 		if ( $parent_element && $parent_element['name'] === 'dropdown' && ! isset( $parent_element['settings']['megaMenu'] ) ) {
 			$this->tag = 'ul';
@@ -901,12 +906,12 @@ class Element_Container extends Element {
 				}
 
 				$child_element = ! empty( Frontend::$elements[ $child_id ] ) ? Frontend::$elements[ $child_id ] : false;
-				$child_html = $child_element ? Frontend::render_element( $child_element ) : false; // Recursive
+				$child_html    = $child_element ? Frontend::render_element( $child_element ) : false; // Recursive
 
 				if ( $child_element && $child_html ) {
 					// Nav items is parent element: Wrap this nav link in <li> (@since 1.8)
 					$parent_id               = $child_element['parent'];
-					$parent_element          = ! empty( Frontend::$elements[$parent_id] ) ? Frontend::$elements[$parent_id] : false;
+					$parent_element          = ! empty( Frontend::$elements[ $parent_id ] ) ? Frontend::$elements[ $parent_id ] : false;
 					$inside_nav_items        = ! empty( $parent_element['settings']['_hidden']['_cssClasses'] ) ? $parent_element['settings']['_hidden']['_cssClasses'] === 'brx-nav-nested-items' : false;
 					$inside_dropdown_content = ! empty( $parent_element['settings']['_hidden']['_cssClasses'] ) ? $parent_element['settings']['_hidden']['_cssClasses'] === 'brx-dropdown-content' : false;
 
@@ -915,8 +920,8 @@ class Element_Container extends Element {
 						( $inside_nav_items || $inside_dropdown_content ) &&
 						( strpos( $child_html, '<li' ) === false || strpos( $child_html, '<li' ) !== 0 )
 					) {
-						$dropdown_id = $parent_element['parent'];
-						$dropdown_element = ! empty( Frontend::$elements[$dropdown_id] ) ? Frontend::$elements[$dropdown_id] : false;
+						$dropdown_id      = $parent_element['parent'];
+						$dropdown_element = ! empty( Frontend::$elements[ $dropdown_id ] ) ? Frontend::$elements[ $dropdown_id ] : false;
 
 						// Don't wrap dropdown megamenu item in <li>
 						if ( isset( $dropdown_element['settings']['megaMenu'] ) ) {
